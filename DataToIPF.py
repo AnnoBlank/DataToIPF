@@ -191,43 +191,25 @@ def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  p
     
     return [X, Y, Z, Zstd, tilt_angleall[1], tilt_angleall[0], state, Zdfiivar, popt[0], np.sqrt(pcov[0][0])]
 
-def rotation_ebsd(mat2, phi1, phi2, phi3):
 
-    posiotiondrehen = np.array([[0], [0], [1]])
-    R1 = rotation(phi1, phi2, phi3)
+def rotation_ebsd(matrix, phi1, phi2, phi3):
+
+    position_rotation = np.array([[0], [0], [1]])
+    R_1 = ipfzXY.rotation(phi1, phi2, phi3)
     
-    for i in range(0,len(mat2)):
-        R2 = rotation(mat2[i, 3], mat2[i, 4], mat2[i, 5])
-        R = np.dot(np.linalg.inv(R1), R2)
-        xx , yy , zz = np.dot(np.transpose(R), posiotiondrehen)
-        mat2[i, 6:9] = xx[0], yy[0], zz[0]
-        r = np.linalg.norm(mat2[i, 6:9])
-        mat2[i, 6:9] /= r
+    for i in range(0, len(matrix)):
+        R_2 = ipfzXY.rotation(matrix[i, 3], matrix[i, 4], matrix[i, 5])
+        R = np.dot(np.linalg.inv(R_1), R_2)
+        xx, yy, zz = np.dot(np.transpose(R), position_rotation)
+        matrix[i, 6:9] = xx[0], yy[0], zz[0]
+        r = np.linalg.norm(matrix[i, 6:9])
+        matrix[i, 6:9] /= r
         
-    for k in range(0,len(mat2)):
-            mat2[k, 9:11] = ipfzXY.poleA2(mat2[k, 6],mat2[k, 7],mat2[k, 8])
+    for k in range(0,len(matrix)):
+            matrix[k, 9:11] = ipfzXY.poleA2(matrix[k, 6],matrix[k, 7],matrix[k, 8])
             
-    return mat2
- 
-def rotation(phi1, phi, phi2):
-    phi1_rad = np.radians(phi1)
-    phi_rad = np.radians(phi)
-    phi2_rad = np.radians(phi2)
+    return matrix
 
-    cos_phi1 = np.cos(phi1_rad)
-    sin_phi1 = np.sin(phi1_rad)
-    cos_phi = np.cos(phi_rad)
-    sin_phi = np.sin(phi_rad)
-    cos_phi2 = np.cos(phi2_rad)
-    sin_phi2 = np.sin(phi2_rad)
-
-    R = np.array([
-        [cos_phi1 * cos_phi2 - cos_phi * sin_phi1 * sin_phi2, -cos_phi * cos_phi2 * sin_phi1 - cos_phi1 * sin_phi2, sin_phi * sin_phi1],
-        [cos_phi2 * sin_phi1 + cos_phi * cos_phi1 * sin_phi2, cos_phi * cos_phi1 * cos_phi2 - sin_phi1 * sin_phi2, -cos_phi1 * sin_phi],
-        [sin_phi * sin_phi2, cos_phi2 * sin_phi, cos_phi]
-    ])
-
-    return R
 
 class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def __init__(self):
@@ -1308,14 +1290,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('No data')
         else:
             if self.evaluateRotAngleLineEdit.text() == '' or self.evaluateTiltAngleLineEdit.text() == '':
-                print('Enter roation angles')
+                print('Enter rotation angles')
             else:
                 try:
                     rotationAngle = float(self.evaluateRotAngleLineEdit.text())
                     tiltAngel = float(self.evaluateTiltAngleLineEdit.text())
                     self.evaluate.mergeDataSet = rotation_ebsd(self.evaluate.mergeDataSet, rotationAngle, tiltAngel,0) 
                 except:
-                    print('Only numbers. No String')
+                    print('Only numbers. No Strings!')
                      
     def dataRotationMatrixUpdate(self):
         if self.threadDataRotationMatrix.is_alive():

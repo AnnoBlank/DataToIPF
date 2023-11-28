@@ -14,17 +14,24 @@ import numpy as np
 # =============================================================================
 
 def rotation(phi1, phi, phi2):
-    
-   phi1 = np.deg2rad(phi1);
-   phi = np.deg2rad(phi);
-   phi2 = np.deg2rad(phi2);
-   
-   return np.array([[np.cos(phi1)*np.cos(phi2)-np.cos(phi)*np.sin(phi1)*np.sin(phi2),
-            -np.cos(phi)*np.cos(phi2)*np.sin(phi1)-np.cos(phi1)*
-            np.sin(phi2),np.sin(phi)*np.sin(phi1)],[np.cos(phi2)*np.sin(phi1)
-            +np.cos(phi)*np.cos(phi1)*np.sin(phi2),np.cos(phi)*np.cos(phi1)
-            *np.cos(phi2)-np.sin(phi1)*np.sin(phi2), -np.cos(phi1)*np.sin(phi)],
-            [np.sin(phi)*np.sin(phi2), np.cos(phi2)*np.sin(phi), np.cos(phi)]],float)
+    phi1_rad = np.radians(phi1)
+    phi_rad = np.radians(phi)
+    phi2_rad = np.radians(phi2)
+
+    cos_phi1 = np.cos(phi1_rad)
+    sin_phi1 = np.sin(phi1_rad)
+    cos_phi = np.cos(phi_rad)
+    sin_phi = np.sin(phi_rad)
+    cos_phi2 = np.cos(phi2_rad)
+    sin_phi2 = np.sin(phi2_rad)
+
+    R = np.array([
+        [cos_phi1 * cos_phi2 - cos_phi * sin_phi1 * sin_phi2, -cos_phi * cos_phi2 * sin_phi1 - cos_phi1 * sin_phi2, sin_phi * sin_phi1],
+        [cos_phi2 * sin_phi1 + cos_phi * cos_phi1 * sin_phi2, cos_phi * cos_phi1 * cos_phi2 - sin_phi1 * sin_phi2, -cos_phi1 * sin_phi],
+        [sin_phi * sin_phi2, cos_phi2 * sin_phi, cos_phi]
+    ])
+
+    return R
 
                                                     
 # =============================================================================
