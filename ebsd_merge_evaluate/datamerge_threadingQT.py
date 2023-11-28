@@ -62,11 +62,11 @@ class parent_merge(QObject):
         return ls.shade(M, cmap=cmap, vert_exag = 10, blend_mode='hsv', vmin=min_scale, vmax=max_scale)
 
 
-    def load_pattern_matching_diff_plt(self,depth=25,leveling=1,levelplotrange=1,):
+    def pattern_matching_auto(self,depth=25,leveling=1,levelplotrange=1,):
         try:
             image_data_1 = self.confocal_image_data_1[::-1, :]
             image_data_2 = self.confocal_image_data_2[::-1, :]
-
+            
             dataS=np.reshape(image_data_1, (-1))
             dataS.sort()
             
@@ -128,7 +128,7 @@ class parent_merge(QObject):
 
 
             ax1.imshow(img3)
-            ax1.set_title('CLSM data1', fontsize=16)
+            ax1.set_title('CLSM Matching Points Difference Map', fontsize=16)
             
             textstr1 = 'Enter: resume difference calculation'
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -136,14 +136,17 @@ class parent_merge(QObject):
             # place a text box in upper left in axes coords
             ax1.text(-0.12, -0.05, textstr1, transform=ax1.transAxes, fontsize=12,
                               va='top',ha='center', bbox=props)
-    
+            
+            _ = figdiff.ginput(32, timeout=-1)
+            
             plt.close(figdiff)
             
             self.affine_transformation(P1, P2, leveling, levelplotrange)
 
         except:
             print('CLSM data difference failed')
-            
+
+
     def load_confocal_data_diff_plt(self,leveling=1,levelplotrange=1,):
         try:
             figdiff, ((ax1), (ax2)) = plt.subplots(1, 2)

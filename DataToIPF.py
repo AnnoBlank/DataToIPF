@@ -430,16 +430,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
-        self.mergedata.load_pattern_matching_diff_plt()      
+        self.mergedata.pattern_matching_auto()      
             
         self.worker.deleteLater
         self.thread.deleteLater
         self.thread = 0
-        if (self.loadCLSM1line.text() == '' and self.loadCLSM2line.text() == ''):
-            self.select_points_status = 0
-        else:
-            if self.select_points_status == 1:
-                self.select_points_status = 0
+        self.select_points_status = 0
                 
     def  load_auto_clsm_data_thread_finished_from_file(self):
         file_name = self.browse_button_master('Matching Points .pts File', 'CLSM Matching Points File (*.pts)', tmp_true=True)
