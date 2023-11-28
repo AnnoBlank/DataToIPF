@@ -55,7 +55,7 @@ class PrintLogger(QObject):
     
 # create second interactive window for the case of point selection options
 class SecondWindow(QtWidgets.QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         super().__init__()
 
         self.resize(640, 640)
@@ -216,12 +216,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         super().__init__()
 
         # Initialize class attributes
-        self.checkbox_change_state = 0
         self.select_points_status = 0
         self.data_merge_clsm_single = 0
         self.data_merge_afm_single = 0 
         self.select_point_for_diff = 0
-        self.checkbox_ebsd_change_state = 1
+        self.ebsd_loaded = False
         self.loading_points = 0
         self.setupUi(MainWindow)
         self.thread = 0
@@ -266,11 +265,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def tabMergeCLSM(self): 
         self.mergeloadCLSM1.clicked.connect(self.browse_button_CLSM_1)
         self.mergeloadCLSM2.clicked.connect(self.browse_button_CLSM_2)
-        self.mergeroationCLSM1.currentIndexChanged.connect(self.checkbox_change_state_1)
-        self.CLSM1checkBox.stateChanged.connect(self.checkbox_change_state_1)
-        self.mergeroationCLSM2.currentIndexChanged.connect(self.checkbox_change_state_1)
-        self.CLSM2checkBox.stateChanged.connect(self.checkbox_change_state_1)
-        self.mergeLevelingcheckBox.stateChanged.connect(self.checkbox_change_state_1)
         self.mergesubstractCLSM12.clicked.connect(self.browse_CLSM_substract_norm)
         self.autoSubstract.clicked.connect(self.browse_CLSM_substract_auto)
         self.loadsubstractCLSM12.clicked.connect(self.browse_CLSM_substract_file)
@@ -294,36 +288,16 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         # self.mergeloadAFM1.clicked.connect(self.browse_button_AFM_1)
         # self.mergeloadAFM2.clicked.connect(self.browse_button_AFM_2)
         # self.mergeviewAFM.clicked.connect(self.browse_merge_view_AFM)
-        # self.mergeroationAFM1.currentIndexChanged.connect(self.checkbox_change_state_1)
-        # self.AFM1checkBox.stateChanged.connect(self.checkbox_change_state_1)
-        # self.mergeroationAFM2.currentIndexChanged.connect(self.checkbox_change_state_1)
-        # self.AFM2checkBox.stateChanged.connect(self.checkbox_change_state_1)
-        # self.mereAFMLevelingcheckBox.stateChanged.connect(self.checkbox_change_state_1)
         # self.mergesubstractAFM12.clicked.connect(self.browse_merge_substract_AFM_12)
-        # self.mergeAFMradioButton1.clicked.connect(self.checkbox_change_state_1)
-        # self.mergeAFMradioButton2.clicked.connect(self.checkbox_change_state_1)
-        # self.mergeAFMradioButton3.clicked.connect(self.checkbox_change_state_1)
-        # self.mergeAFMradioButton4.clicked.connect(self.checkbox_change_state_1)
-        # self.mergeAFMradioButton5.clicked.connect(self.checkbox_change_state_1)
         
         # self.mergeloadPicData.clicked.connect(self.browse_pic_data)
         # self.mergeviewPic.clicked.connect(self.browse_view_pic_data)
-        # self.mergeroationPicData.currentIndexChanged.connect(self.browse_checkbox_change_state_pic)
-        # self.PicDatacheckBox.stateChanged.connect(self.browse_checkbox_change_state_pic)        
         
-    def checkbox_change_state_1(self):
-        self.checkbox_change_state = 1
-        self.checkboxChangeStatePic = 1
-        
-    def browse_checkbox_change_state_pic(self):
-        self.checkboxChangeStatePic = 1
-        self.checkbox_change_state = 1
-       
     
     def browse_merge_view_CLSM(self):
-        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '' and self.checkbox_change_state == 1:
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
             self.load_clsm_data_thread()
-        elif (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0 or  self.checkbox_change_state == 1):
+        elif (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0):
             self.load_clsm_data_thread()
             self.thread.finished.connect(self.mergedata.view_confocal_data)
 
@@ -340,7 +314,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.worker.leveling = self.mergeLevelingcheckBox.checkState()
         
         if (self.loadCLSM1line.text() == '' or self.loadCLSM2line.text() == ''):
-            if (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0 or self.checkbox_change_state == 1):
+            if (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0):
                 if not self.loadCLSM1line.text():
                     self.worker.loadCLSM1line =  self.loadCLSM2line.text()
                     self.worker.mergeroationCLSM1 = self.mergeroationCLSM2.currentText()[:-1]
@@ -353,7 +327,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.thread.started.connect(self.worker.load_confocal_data)
                 self.thread.start()
                 self.data_merge_clsm_single = 1
-                self.checkbox_change_state = 0
                 self.mergeviewCLSM.setEnabled(False)
                 
                 self.thread.finished.connect(self.load_clsm_data_thread_finished) 
@@ -363,7 +336,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.mergedata.view_confocal_data()
                 self.dataMergeProgressBar.setMaximum(100)
         else:
-            if len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 1 or self.checkbox_change_state == 1:
+            if len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 1:
                 self.worker.loadCLSM1line =  self.loadCLSM1line.text()
                 self.worker.loadCLSM2line =  self.loadCLSM2line.text()
                 self.worker.mergeroationCLSM1 = self.mergeroationCLSM1.currentText()[:-1]
@@ -373,7 +346,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 
                 self.thread.started.connect(self.worker.load_confocal_data_diff)
                 self.thread.start()
-                self.checkbox_change_state = 0
                 self.data_merge_clsm_single = 0
                 self.select_point_for_diff = 1
                 self.mergeviewCLSM.setEnabled(False)
@@ -507,21 +479,21 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def browse_button_EBSD(self):
         file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
         self.loadEBSDline.setText(file_name)
-        self.checkbox_ebsd_change_state = 1
         
         if file_name:
             self.load_ebsd_data()
             self.mergeloadEBSD.setStyleSheet(self.green)
+            self.ebsd_loaded = True
         else:
             print('No file selected for input of EBSD data')
             self.mergeloadEBSD.setStyleSheet(self.color_click_on)
+            self.ebsd_loaded = False
     
     def browse_button_CLSM_1(self):
         file_name = self.browse_button_master('CLSM csv File', 'CLSM CSV File (*.csv)')
 
         self.loadCLSM1line.setText(file_name)
         # self.loadPicDataline.setText('')
-        self.checkbox_change_state = 1
         if file_name:
             # self.mergeloadPicData.setStyleSheet(self.color_click_on)
             self.mergeloadCLSM1.setStyleSheet(self.green)
@@ -535,7 +507,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         self.loadCLSM2line.setText(file_name)
         # self.loadPicDataline.setText('')
-        self.checkbox_change_state = 1  
         if file_name:
             self.mergeloadCLSM2.setStyleSheet(self.green)
         else:
@@ -631,55 +602,50 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.optLoadDataButtonLineEdit.setText(file_name)   
                         
     def browse_CLSM_substract_norm(self):
-        self.checkbox_change_state_1()
         self.load_clsm_data_thread(mode = 'norm')
         
     def browse_CLSM_substract_auto(self):
-        self.checkbox_change_state_1()
         self.load_clsm_data_thread(mode = 'auto')
         
     def browse_CLSM_substract_file(self):
-        self.checkbox_change_state_1()
         self.load_clsm_data_thread(mode = 'load')
         
     def ebsd_phase_changed(self):
-        if (self.loadEBSDline.text() !='') and (self.phaseEBSD.text() !=''):
-             self.checkbox_ebsd_change_state = 1
+        if self.ebsd_loaded and (self.phaseEBSD.text() !=''):
              self.load_ebsd_data()
         
     def load_ebsd_data(self):
-        if self.checkbox_ebsd_change_state == 1:
-            self.worker2 = merge.mergeThread()
-            self.thread2 = QThread()
-            self.worker2.moveToThread(self.thread2)
-            self.worker2.finished.connect(self.thread2.quit)
-            self.worker2.fileNameEBSD =  self.loadEBSDline.text()
-            self.worker2.phaseEBSD = self.phaseEBSD.text()
-            if self.worker2.phaseEBSD=='':
-                file_name= self.worker2.fileNameEBSD
-                
-                
-                with open(file_name,"r",errors="replace") as f:
-                    CRSTdata = f.readlines()
-                CRSTdata = CRSTdata[1:]   
-                zeroColumn= [lines.split()[0] for i , lines in enumerate(CRSTdata)]
-                zeroColumnIntegers=[col for col in zeroColumn if (col.isdigit() and col!='0')]
-                phase=str(most_frequent(zeroColumnIntegers))
-                self.EBSD_phase=phase
-                print(f"Automated phase detection used phase = {phase}")
-                self.worker2.phaseEBSD=phase
-            self.worker2.X_grid = 0
-            self.worker2.Y_grid = 0
-            self.worker2.Z_grid = 0
-            self.thread2.started.connect(self.worker2.load_EBSD_data)
-            self.thread2.start()
-            self.mergeviewEBSD.setEnabled(False)
-            self.phaseEBSD.setEnabled(False)
-            self.dataMergeProgressBar.setMaximum(0)
-            self.thread2.finished.connect(self.load_ebsd_data_thread_finished)
+        self.worker2 = merge.mergeThread()
+        self.thread2 = QThread()
+        self.worker2.moveToThread(self.thread2)
+        self.worker2.finished.connect(self.thread2.quit)
+        self.worker2.fileNameEBSD =  self.loadEBSDline.text()
+        self.worker2.phaseEBSD = self.phaseEBSD.text()
+        if self.worker2.phaseEBSD=='':
+            file_name= self.worker2.fileNameEBSD
             
-        else:
-            print('EBSD data is loaded')
+            
+            with open(file_name,"r",errors="replace") as f:
+                CRSTdata = f.readlines()
+            CRSTdata = CRSTdata[1:]   
+            zeroColumn= [lines.split()[0] for i , lines in enumerate(CRSTdata)]
+            zeroColumnIntegers=[col for col in zeroColumn if (col.isdigit() and col!='0')]
+            phase=str(most_frequent(zeroColumnIntegers))
+            self.EBSD_phase=phase
+            print(f"Automated phase detection used phase = {phase}")
+            self.worker2.phaseEBSD=phase
+        self.worker2.X_grid = 0
+        self.worker2.Y_grid = 0
+        self.worker2.Z_grid = 0
+        self.thread2.started.connect(self.worker2.load_EBSD_data)
+        self.thread2.start()
+        self.mergeviewEBSD.setEnabled(False)
+        self.phaseEBSD.setEnabled(False)
+        self.dataMergeProgressBar.setMaximum(0)
+        self.thread2.finished.connect(self.load_ebsd_data_thread_finished)
+            
+        # else:
+            # print('EBSD data is loaded')
         
     def load_ebsd_data_thread_finished(self):
         if self.thread == 0:
@@ -701,49 +667,46 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeloadEBSD.setStyleSheet(self.green)
             self.mergeSelectPoints.setStyleSheet(self.color_click_on)
             self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
-            self.checkbox_ebsd_change_state = 0
               
     def load_ebsd_view(self):
-        if self.checkbox_ebsd_change_state == 1:
-            print('No EBSD data')
-        else:
+        if self.ebsd_loaded:
             self.mergedata.view_EBSD_data()
+        else:
+            print('No EBSD data')
 
     def select_points(self):
         if not self.read_in_selection:
             self.manual_selection=True
         self.dataMergeProgressBar.setMaximum(0)
-        if self.checkbox_ebsd_change_state == 1:
-            print('No EBSD data')
-            self.dataMergeProgressBar.setMaximum(100)
-        elif len(self.mergedata.confocal_data) == 2 or self.checkbox_change_state ==1:
-            self.load_clsm_data_thread()
-            self.select_points_status = 1
-        elif len(self.mergedata.confocal_data) != 2 and self.checkbox_ebsd_change_state != 1:
-            if self.mergedata.P.shape == (2,):
-                self.dataMergeProgressBar.setMaximum(100)
-
-                if(self.loading_points==1):
-                    self.mergedata.load_points_merge(self.loading_pointsFileName)
-                    self.manual_selection = False
-                    self.read_in_selection = True
-                    self.loading_points=0
+        if self.ebsd_loaded:
+            if len(self.mergedata.confocal_data) == 2:
+                self.load_clsm_data_thread()
+                self.select_points_status = 1
+            elif len(self.mergedata.confocal_data) != 2 :
+                if self.mergedata.P.shape == (2,):
+                    self.dataMergeProgressBar.setMaximum(100)
+    
+                    if(self.loading_points==1):
+                        self.mergedata.load_points_merge(self.loading_pointsFileName)
+                        self.manual_selection = False
+                        self.read_in_selection = True
+                        self.loading_points=0
+                    else:
+                        self.mergedata.calibrate_confocal_and_EBSD_data()
+                    
+                    if self.mergedata.P.shape != (2,):
+                        self.mergeSelectPoints.setStyleSheet(self.green)
+                        self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+                        self.mergeCalculateMerge.setEnabled(True)
+                    
+    
                 else:
-                    self.mergedata.calibrate_confocal_and_EBSD_data()
-                
-                if self.mergedata.P.shape != (2,):
-                    self.mergeSelectPoints.setStyleSheet(self.green)
-                    self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
-                    self.mergeCalculateMerge.setEnabled(True)
-                
-
-            else:
-                self.dataMergeProgressBar.setMaximum(100)
-                self.select_points_window()
+                    self.dataMergeProgressBar.setMaximum(100)
+                    self.select_points_window()
                 
         else:
-            print('CLSM data')
-            self.dataMergeProgressBar.setMaximum(100)  
+            print('No EBSD data')
+            self.dataMergeProgressBar.setMaximum(100)
     
 
     def select_points_finished(self):
@@ -1219,6 +1182,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         except:
             print('Error')
             self.evaluateProgressBar.setMaximum(100)
+            
     def mergedLeveldDataThreadUpdate(self):
         if self.mergedLeveldDataThread.is_alive():
             QTimer.singleShot(500, self.mergedLeveldDataThreadUpdate)
@@ -1246,7 +1210,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             
     def browseCalculateIPF(self):
         try:
-    
             self.evaluate.resolution = float(self.evaluateIPFresolutionLineEdit.text())
             self.evaluate.smoothing = self.evaluateSmoothingCheckBox.checkState()
             self.evaluate.cutOffFilter = float(self.evaluateCuttOffFilterLineEdit.text())
@@ -1677,7 +1640,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.loadPicDataline.setText('')
     #     self.loadCLSM1line.setText('')
     #     self.loadCLSM2line.setText('')
-    #     self.checkbox_change_state = 1
     #     if file_name:
     #         self.mergeloadPicData.setStyleSheet(self.color_click_on)
     #         self.mergeloadCLSM1.setStyleSheet(self.color_click_on)
@@ -1694,7 +1656,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.loadPicDataline.setText('')
     #     self.loadCLSM1line.setText('')
     #     self.loadCLSM2line.setText('')
-    #     self.checkbox_change_state = 1  
     #     if file_name:
     #         self.mergeloadAFM2.setStyleSheet(self.green)
     #     else:
@@ -1716,9 +1677,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #         self.mergeloadPicData.setStyleSheet(self.color_click_on)
         
     # def browse_merge_view_AFM(self):
-    #     if self.loadAFM1line.text() != '' and self.loadAFM2line.text() != '' and self.checkbox_change_state == 1:
+    #     if self.loadAFM1line.text() != '' and self.loadAFM2line.text() != '' :
     #         self.loadAFMdataThread()
-    #     elif (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 0 or  self.checkbox_change_state == 1):
+    #     elif (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 0 ):
     #         self.loadAFMdataThread()
     #         self.threadAFM.finished.connect(self.mergedata.view_confocal_data)
             
@@ -1743,7 +1704,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             
     #     print(f'Data select {self.workerAFM.dataSetselect}')    
     #     if (self.loadAFM1line.text() == '' or self.loadAFM2line.text() == ''):
-    #         if (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 0 or self.checkbox_change_state == 1):
+    #         if (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 0 ):
     #             if (self.loadAFM1line.text()== ''):
     #                 self.workerAFM.loadAFM1line =  self.loadAFM2line.text()
     #                 self.workerAFM.mergeroationAFM1 = self.mergeroationAFM2.currentText()[:-1]
@@ -1757,14 +1718,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #             self.threadAFM.started.connect(self.workerAFM.loadAFMdata)
     #             self.threadAFM.start()                
     #             self.data_merge_afm_single = 1
-    #             self.checkbox_change_state = 0
     #             self.mergeviewAFM.setEnabled(False)
     #             self.dataMergeProgressBar.setMaximum(0)
     #             self.threadAFM.finished.connect(self.loadAFMdataThreadFinished)
     #         else:
     #             self.mergedata.view_confocal_data()
     #     else:
-    #         if (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 1 or self.checkbox_change_state == 1):
+    #         if (len(self.mergedata.confocal_data) == 2 or self.data_merge_afm_single == 1 ):
     #             self.workerAFM.loadAFM1line =  self.loadAFM1line.text()
     #             self.workerAFM.loadAFM2line =  self.loadAFM2line.text()
     #             self.workerAFM.mergeroationAFM1 = self.mergeroationAFM1.currentText()[:-1]
@@ -1775,7 +1735,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #             self.threadAFM.started.connect(self.workerAFM.loadAFMdataDiff)
     #             self.threadAFM.start()
 
-    #             self.checkbox_change_state = 0
     #             self.data_merge_afm_single = 0
     #             self.select_point_for_diff = 1
     #             self.mergeviewAFM.setEnabled(False)
@@ -1845,8 +1804,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.threadPicData.started.connect(self.workerPicData.loadPicdata)
     #     self.threadPicData.start()
 
-    #     self.checkboxChangeStatePic = 0
-    
     #     self.mergeviewPic.setEnabled(False)
     #     self.dataMergeProgressBar.setMaximum(0)
     #     self.threadPicData.finished.connect(self.PicDataThreadFinished)
@@ -1865,13 +1822,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #         self.select_points()
                    
     # def browse_view_pic_data(self):        
-    #         if (len(self.mergedata.confocal_data) == 2 or self.checkboxChangeStatePic == 1):
+    #         if (len(self.mergedata.confocal_data) == 2):
     #             self.loadPicDataThread()
     #         else:
     #             self.mergedata.view_confocal_data() 
 
     # def browse_merge_substract_AFM_12(self):
-    #     self.checkbox_change_state_1()
     #     self.loadAFMdataThread() 
 #%%
 if __name__ == "__main__":
