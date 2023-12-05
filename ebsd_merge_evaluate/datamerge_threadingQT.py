@@ -64,8 +64,8 @@ class parent_merge(QObject):
 
     def pattern_matching_auto(self,depth=25,leveling=1,levelplotrange=1,):
         try:
-            image_data_1 = self.confocal_image_data_1[::-1, :]
-            image_data_2 = self.confocal_image_data_2[::-1, :]
+            image_data_1 = self.confocal_image_data_1#[::-1, :]
+            image_data_2 = self.confocal_image_data_2#[::-1, :]
             
             dataS=np.reshape(image_data_1, (-1))
             dataS.sort()
@@ -130,6 +130,9 @@ class parent_merge(QObject):
             ax1.imshow(img3)
             ax1.set_title('CLSM Matching Points Difference Map', fontsize=16)
             
+            self.confocal_data_1 = np.flipud(np.rot90(self.confocal_data_1))
+            self.confocal_data_2 = np.flipud(np.rot90(self.confocal_data_2))
+            
             textstr1 = 'Enter: resume difference calculation'
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     
@@ -193,8 +196,8 @@ class parent_merge(QObject):
             
     def confocal_diff_from_file(self,file_name = 'tmp/000_selected_points_difference_microscopy.pts',leveling=1,levelplotrange=1):   
         try:
-            mng = plt.get_current_fig_manager()
-            mng.resize(1800,800)
+            # mng = plt.get_current_fig_manager()
+            # mng.resize(1800,800)
 
             self.confocal_data_1 = np.flipud(np.rot90(self.confocal_data_1))
             self.confocal_data_2 = np.flipud(np.rot90(self.confocal_data_2))
@@ -222,24 +225,25 @@ class parent_merge(QObject):
         
         plt.ioff()            
            
-        plt.imshow(Z)
-        plt.colorbar()
-        plt.savefig('tmp/000_Ebene.png')
-        plt.close()
-        
         plt.imshow(self.confocal_data)
         plt.colorbar()
         plt.clim([mean_height-levelplotrange,mean_height+levelplotrange])
-        plt.savefig('tmp/000_Confocal_Before.png')
+        plt.savefig('tmp/000_difference_CLSM1_CLSM2.png')
         plt.close()
         
         if leveling==1:
             print('geometrical leveling..................................')    
+            
+            plt.imshow(Z)
+            plt.colorbar()
+            plt.savefig('tmp/000_difference_CLSM1_CLSM2_background.png')
+            plt.close()
+            
             self.confocal_data -= Z
             plt.imshow(self.confocal_data)
             plt.colorbar()
             plt.clim([mean_height-levelplotrange,mean_height+levelplotrange])
-            plt.savefig('tmp/000_Confocal_leveled.png')
+            plt.savefig('tmp/000_difference_CLSM1_CLSM2_leveled.png')
             plt.close()
         
         self.confocal_data = np.flipud(np.rot90(self.confocal_data))
@@ -1049,7 +1053,7 @@ class mergedata(parent_merge):
         Pc = Pc[Pc[:,0] != -1,:]
         Pt=np.append(Pc,P, axis=1)
         hString='EBSD_xcoord EBSD_ycoord CLSM_xcoord CLSM_ycoord'
-        np.savetxt('tmp/000_selected_points_difference_merge.pts',Pt, header=hString)
+        np.savetxt('tmp/000_selected_points_merge.pts',Pt, header=hString)
         self.P = P
         self.Pc = Pc
         print('Ready for merging the data.')

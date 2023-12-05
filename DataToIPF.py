@@ -411,7 +411,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
         
-        self.mergedata.load_confocal_data_diff_plt()      
+        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState())      
             
         self.clean_up_thread()  
         
@@ -430,7 +430,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
-        self.mergedata.pattern_matching_auto()      
+        self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())      
             
         self.worker.deleteLater
         self.thread.deleteLater
@@ -446,7 +446,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
-        self.mergedata.confocal_diff_from_file(file_name)      
+        self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
             
         self.worker.deleteLater
         self.thread.deleteLater

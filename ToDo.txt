@@ -1,0 +1,23 @@
+Automatisiertes Phasensuchen -check
+Punktpaare Abspreichern, Differenz und Merge -check
+Alle Punkte in eine Datei, nicht zwei, dafür längerer Header -halfcheck
+Filter Generierung
+Abspeichern einer Logdatei (merge) -check
+Info beim Schließen
+Punktverbesserungen save
+
+1.Readme als kurzer Abriss fertig
+2.Programmblöcke fertig beschreiben Programmnah
+3.Manual schreiben Anwendernah -> Index
+4.Powerpoint Folien als Walkthrough
+
+Dokumentation weiterschreiben, was geht, was nicht, genauere Handlungsanweisungen
+Maske zum Ausradieren, Bereiche zum Löschen weiß
+Maske mit in Logfile, Maske zum Nachbearbeiten ausgeben
+
+Differenzmikroskopie Punkte einlesen, Bild ausspeichern lassen
+
+EBSD Differenz, Maske
+
+
+Maske überprüfen, falsche überlagerung!

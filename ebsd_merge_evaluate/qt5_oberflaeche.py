@@ -1803,7 +1803,7 @@ class Ui_MainWindow(object):
         self.CLSM2checkBox.setText(_translate("MainWindow", "Mirror"))
         self.autoSubstract.setText(_translate("MainWindow", "Automated Substract"))
         self.mergesubstractCLSM12.setText(_translate("MainWindow", "Manual Substract"))
-        self.loadsubstractCLSM12.setText(_translate("MainWindow", "Load Points"))
+        self.loadsubstractCLSM12.setText(_translate("MainWindow", "Load From File"))
         self.mergeviewCLSM.setText(_translate("MainWindow", "View CLSM data"))
         self.label_3.setText(_translate("MainWindow", "Reference leveling for evaluation"))
         self.label_4.setText(_translate("MainWindow", "Amount of areas:"))
