@@ -13,9 +13,11 @@ python3.8 DataToIPF.py
 Windows:
 Installation of anaconda is requiered + moduls e.g. opencv
 
-DataToIPF.py start with PyCharm ---- Or --- DataToIPF.py start with Spyder 
----------- Or -------
-Using DataToIPF.exe (no python or anaconda is required)
+For Use on E2M_Auriga:
+
+Search for Anaconda Prompt
+
+Execute "python D:\Balden-Data\Merge-program_Barth\DataToIPF.py" (insert via Shift + Einf)
 
 
 

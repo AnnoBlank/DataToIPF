@@ -14,8 +14,8 @@ import multiprocessing as mp
 
 # importing packages for GUI usage 
 from PyQt5 import  QtWidgets
-from PyQt5.QtCore import QObject, QThread, QTimer, QRect, pyqtSignal#, Qt
-from PyQt5.QtWidgets import QFileDialog, QMainWindow
+from PyQt5.QtCore import QObject, QThread, QTimer, QRect, pyqtSignal, Qt
+from PyQt5.QtWidgets import QFileDialog, QMainWindow, QDialog, QLabel
 import ebsd_merge_evaluate.qt5_oberflaeche as qt5_oberflaeche # use this specific GUI
 
 # importing data processing and visalization packages
@@ -76,6 +76,18 @@ class SecondWindow(QtWidgets.QMainWindow):
             widget.setObjectName(obj_name)
             widget.setText(text)
 
+class popupWindow(QDialog):
+    def __init__(self, name, parent=None):
+        super().__init__(parent)
+        self.name = name
+        self.label = QLabel(self.name, self)
+        self.label.setGeometry(QRect(0, 0, 240, 70))
+        self.label.setTextFormat(Qt.AutoText)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setWordWrap(True)
+        self.label.setObjectName("label")
+        self.setWindowTitle("Hint")
+    
 def linear_fit(x, a, b):
     return x[0] - x[1] * a + b
 
@@ -226,7 +238,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.thread = 0
         self.manual_selection = False
         self.read_in_selection = False
-        self.loading_pointsFileName = 'tmp/000_selected-points.pts'
+        self.loading_pointsFileName = 'tmp/000_selected-points.txt'
         self.merge_save_path = ''
 
         # Initialize mergedata and evaluate objects
@@ -293,7 +305,16 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         # self.mergeloadPicData.clicked.connect(self.browse_pic_data)
         # self.mergeviewPic.clicked.connect(self.browse_view_pic_data)
         
+        self.mergeviewAFM.clicked.connect(self.show_warning_save)
     
+    def show_warning_save(self): # Create Popup
+        message = 'Please remember to save your temporary data in tmp folder.'
+        print(message)
+        
+        self.popup = popupWindow(message)
+        self.popup.setGeometry(1200, 600, 240, 70)
+        self.popup.show()
+
     def browse_merge_view_CLSM(self):
         if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
             self.load_clsm_data_thread()
@@ -438,7 +459,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.select_points_status = 0
                 
     def  load_auto_clsm_data_thread_finished_from_file(self):
-        file_name = self.browse_button_master('Matching Points .pts File', 'CLSM Matching Points File (*.pts)', tmp_true=True)
+        file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true=True)
         
         self.mergeviewCLSM.setEnabled(True)
         self.dataMergeProgressBar.setMaximum(100)
@@ -457,11 +478,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             if self.select_points_status == 1:
                 self.select_points_status = 0
         
-    def browse_button_master(self, cap, fil, save = False, tmp_true = False):
+    def browse_button_master(self, cap, fil, save = False, tmp_true = False, name_suggestion = ''):
         if tmp_true:
             directory = directory=os.path.join(os.getcwd(),'tmp')
         else:
             directory = os.getcwd()
+        
+        directory = os.path.join(directory, name_suggestion)
         
         options = QFileDialog.Options()
         
@@ -509,7 +532,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeloadCLSM2.setStyleSheet(self.color_optional)
         
     def browse_load_points_merge(self):
-        file_name = self.browse_button_master('Matching Points .pts File', 'EBSD-CLSM Matching Points File (*.pts)', tmp_true = True)
+        file_name = self.browse_button_master('Matching Points .txt File', 'EBSD-CLSM Matching Points File (*.txt)', tmp_true = True)
         
         self.loading_points=1
         self.loading_pointsFileName = file_name
@@ -520,7 +543,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('No file selected for input of matching points')
             
     def browse_load_points_diff(self):
-        file_name = self.browse_button_master('Matching Points .pts File', 'CLSM Matching Points File (*.pts)', tmp_true = True)
+        file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true = True)
         
         # self.loading_points=1
         # self.loading_pointsFileName = file_name
@@ -543,9 +566,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('Merging was not applied')
     
     def merge_save_data(self):
-        file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)', save = True)
+        file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)', save = True, tmp_true=True, name_suggestion = '000_merge.dat')
         
         print('Merged data saved as '+file_name)
+        self.show_warning_save()
         self.dataMergeProgressBar.setMaximum(100)
         if file_name[-4:] == '.dat':
             file_name = file_name[:-4]
@@ -559,6 +583,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.createLogMergeSave()
             if (self.mergedata.Zerowerte_all != 0):
                 np.savetxt(f'{file_name}-Zerolevel-{np.round(np.mean(self.mergedata.Zerowerte_all),3)}.dat', self.mergedata.Zerowerte_all)
+                
         except:
             print('Data save failed')
 

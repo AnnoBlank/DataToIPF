@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1255, 937)
+        MainWindow.resize(1600, 1100)
         MainWindow.setStyleSheet("background-color: rgb(238, 238, 236);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -2120,3 +2120,29 @@ class Ui_MainWindow(object):
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave_as.setText(_translate("MainWindow", "Save as"))
+
+# class popupWindow(object):
+#     def setupUi(self, MainWindow):
+#         MainWindow.setObjectName("MainWindow")
+#         MainWindow.setWindowModality(QtCore.Qt.WindowModal)
+#         MainWindow.resize(472, 239)
+#         self.centralwidget = QtWidgets.QWidget(MainWindow)
+#         self.centralwidget.setObjectName("centralwidget")
+#         self.label = QtWidgets.QLabel(self.centralwidget)
+#         self.label.setGeometry(QtCore.QRect(160, 10, 131, 41))
+#         self.label.setTextFormat(QtCore.Qt.AutoText)
+#         self.label.setAlignment(QtCore.Qt.AlignCenter)
+#         self.label.setWordWrap(True)
+#         self.label.setObjectName("label")
+#         MainWindow.setCentralWidget(self.centralwidget)
+#         self.statusbar = QtWidgets.QStatusBar(MainWindow)
+#         self.statusbar.setObjectName("statusbar")
+#         MainWindow.setStatusBar(self.statusbar)
+
+#         self.retranslateUi(MainWindow)
+#         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+#     def retranslateUi(self, MainWindow):
+#         _translate = QtCore.QCoreApplication.translate
+#         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+#         self.label.setText(_translate("MainWindow", "Way too long shitty useless text to improvise"))

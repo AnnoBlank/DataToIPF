@@ -1118,7 +1118,7 @@ class mergedata(parent_merge):
             self.XY_result[k,:] =ipfzXY.poleA2(self.HKL_result[k,0],self.HKL_result[k,1],self.HKL_result[k,2])
     
     def calculate_superposition_view(self):
-        print('Rendereing data, please wait...')
+        print('Rendering data, please wait...')
         figcalc = plt.figure(figsize=(10, 10))
         axcalc = figcalc.add_subplot(1, 1, 1)
         axcalc.imshow(self.confocal_image, cmap='gray')
@@ -1133,6 +1133,7 @@ class mergedata(parent_merge):
         figcalc.show()
         print('Ready.')
         return 1
+
     
     def delteDataThroughImage(self, CLSM_Data=1):
         if CLSM_Data==1:

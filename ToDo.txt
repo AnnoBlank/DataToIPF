@@ -15,9 +15,20 @@ Dokumentation weiterschreiben, was geht, was nicht, genauere Handlungsanweisunge
 Maske zum Ausradieren, Bereiche zum Löschen weiß
 Maske mit in Logfile, Maske zum Nachbearbeiten ausgeben
 
-Differenzmikroskopie Punkte einlesen, Bild ausspeichern lassen
+Differenzmikroskopie Punkte einlesen, Bild ausspeichern lassen -check
 
 EBSD Differenz, Maske
 
-
 Maske überprüfen, falsche überlagerung!
+
+View CLSM bei unloaded points macht manual select
+
+.pts zu .txt -check
+
+Rechtecke werden erst bei nächstem Punkt angezeigt
+
+Zurücksetzen von Balken nach Rechteckssetzung
+
+Reminder Fenster zum 000_ abändern 
+
+Vorschlag 000_merge.dat -check 
