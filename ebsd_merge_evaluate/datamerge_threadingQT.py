@@ -162,20 +162,26 @@ class parent_merge(QObject):
             self.confocal_data_1 = np.flipud(np.rot90(self.confocal_data_1))
             self.confocal_data_2 = np.flipud(np.rot90(self.confocal_data_2))
             
-            textstr2 = '\n'.join((r'Enter: complete point selection', 
-                                  r'Left click: Select a point  -----  Right click:  Deselect the last point: ',))
-
-            textstr1 =  '\n'.join((r'Please select the point in indentical postion. First select point in CLSM data1 than in CLSM data2',
-                           r'The same procedure for position 2 and so on. 4 positions are nessesary for an area'))
+            # textstr2 = '\n'.join((r'Left click: Select a point  -----  Right click: Delete the previously selected point', 
+            #                               r'Enter: Complete point selection',))
+                        #                  r'Find the position (e.g. in total 4 positions) in both pictures'
+            textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in EBSD data',
+                                   r'than in CLSM data. Repeat the same procedure for as many points as needed.',
+                                   r'4 positions are necessary for an area.', '',
+                                   r'Controls:',
+                                   r'Left click: Select a point  -----  Right click: Delete previously selected point',
+                                   r'Lens button | Draw rectangle with LMB: Zoom in  -  Draw rectangle with RMB: Zoom out',
+                                   r'Enter: Complete point selection',))
+            
             # these are matplotlib.patch.Patch properties
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     
             # place a text box in upper left in axes coords
-            ax1.text(-0.12, -0.05, textstr1, transform=ax1.transAxes, fontsize=12,
+            ax1.text(.5, -0.1, textstr1, transform=ax1.transAxes, #fontsize=12,
                              verticalalignment='top', bbox=props)
     
-            ax2.text(-0.1, -0.05, textstr2, transform=ax2.transAxes, fontsize=12,
-                             verticalalignment='top', bbox=props)
+            # ax2.text(-0.1, -0.05, textstr2, transform=ax2.transAxes, fontsize=12,
+            #                  verticalalignment='top', bbox=props)
 
             Ptmp = figdiff.ginput(32, timeout=-1)
             Ptmp = np.asarray(Ptmp)
@@ -1007,11 +1013,13 @@ class mergedata(parent_merge):
                 ax1.text(self.Pc[i,0],self.Pc[i,1],f'  P{i}', fontsize=12)
 
         ax1.invert_yaxis()
+        
         ax2.imshow(self.confocal_image, cmap='gray')
         if self.P.shape != (2,):
             ax2.plot(self.P[:,0],self.P[:,1],'or', linewidth=3, markersize=12, alpha=0.5)
             for i in range(len(self.P)):
                 ax2.text(self.P[i,0],self.P[i,1],f'  P{i}', fontsize=14)
+                
                 
         if type(P_keep) != int and type(Pc_keep)!= int:
             ax2.plot(P_keep[:,0],P_keep[:,1],'ob', linewidth=3, markersize=6, alpha=0.7)
@@ -1022,20 +1030,25 @@ class mergedata(parent_merge):
             for i in range(len(Pc_keep)):
                 ax1.text(Pc_keep[i,0],Pc_keep[i,1],'       selected', fontsize=12)
 
-        textstr2 = '\n'.join((r'Enter: complete point selection', 
-                                      r'Left click: Select a point  -----  Right click:  Deselect the last point: ',))
+        # textstr2 = '\n'.join((r'Left click: Select a point  -----  Right click: Delete the previously selected point', 
+        #                               r'Enter: Complete point selection',))
                     #                  r'Find the position (e.g. in total 4 positions) in both pictures'
-        textstr1 =  '\n'.join((r'Please select the point in indentical postion. First select point in EBSD data than in CLSM data',
-                               r'The same procedure for position 2 and so on. 4 positions are nessesary for an area'))
+        textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in EBSD data than',
+                               r'in CLSM data. Repeat the same procedure for as many points as needed (4 at least).',
+                               r'',
+                               r'Controls:',
+                               r'Left click: Select a point  -----  Right click: Delete previously selected point',
+                               r'Lens button | Draw rectangle with LMB: Zoom in  -  Draw rectangle with RMB: Zoom out',
+                               r'Enter: Complete point selection',))
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         
         # place a text box in upper left in axes coords
-        ax1.text(-0.12, -0.07, textstr1, transform=ax1.transAxes, fontsize=12,
-        verticalalignment='top', bbox=props)
+        ax1.text(.5, -0.1, textstr1, transform=ax1.transAxes, #fontsize=16,
+        verticalalignment='top', horizontalalignment='center', bbox=props)
         
-        ax2.text(-0.1, -0.07, textstr2, transform=ax2.transAxes, fontsize=12,
-        verticalalignment='top', bbox=props)
+        # ax2.text(.5, -0.07, textstr2, transform=ax2.transAxes, fontsize=16,
+        # verticalalignment='top', horizontalalignment='center', bbox=props)
 
         Ptmp = plt.ginput(64, timeout=520)
         Ptmp = np.asarray(Ptmp)
@@ -1187,8 +1200,8 @@ class mergedata(parent_merge):
         global P
         Zerowerte = []
         self.view_confocal_data(pause=1)
-        textstr1 = '\n'.join((r'Please select a reference height with the left mouse bottom',
-                    r' --> Two clicks are nessesary to select a rectangle'))
+        textstr1 = '\n'.join((r'Please select a reference height with the left mouse button',
+                    r' --> Two clicks are necessary to select a rectangle'))
         
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
