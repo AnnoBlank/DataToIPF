@@ -19,6 +19,8 @@ from skimage.transform import PiecewiseAffineTransform, warp
 from skimage import io
 from os.path import join
 from PyQt5.QtCore import QObject, pyqtSignal #, QThread
+#from mpl_interactions import panhandler, zoom_factory
+
 
 class parent_merge(QObject):
     def __init__(self):
@@ -165,12 +167,12 @@ class parent_merge(QObject):
             # textstr2 = '\n'.join((r'Left click: Select a point  -----  Right click: Delete the previously selected point', 
             #                               r'Enter: Complete point selection',))
                         #                  r'Find the position (e.g. in total 4 positions) in both pictures'
-            textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in EBSD data',
-                                   r'than in CLSM data. Repeat the same procedure for as many points as needed.',
-                                   r'4 positions are necessary for an area.', '',
+            textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in EBSD data than',
+                                   r'in CLSM data. Repeat the same procedure for as many points as needed (4 at least).',
+                                   r'',
                                    r'Controls:',
-                                   r'Left click: Select a point  -----  Right click: Delete previously selected point',
-                                   r'Lens button | Draw rectangle with LMB: Zoom in  -  Draw rectangle with RMB: Zoom out',
+                                   r'Left click: Select a point ----- Right click: Delete previously selected point',
+                                   r'Mouse Wheel: Zoom | Refrain from using lens button -> klicks counted as selections', # Every corner of the selected rectangles will be counted as points
                                    r'Enter: Complete point selection',))
             
             # these are matplotlib.patch.Patch properties
@@ -200,7 +202,7 @@ class parent_merge(QObject):
         except:
             print('CLSM data difference failed')
             
-    def confocal_diff_from_file(self,file_name = 'tmp/000_selected_points_difference_microscopy.pts',leveling=1,levelplotrange=1):   
+    def confocal_diff_from_file(self,file_name = 'tmp/000_selected_points_difference_microscopy.txt',leveling=1,levelplotrange=1):   
         try:
             # mng = plt.get_current_fig_manager()
             # mng.resize(1800,800)
@@ -674,10 +676,10 @@ class mergedata(parent_merge):
     
     def save_diff_points(self, P1, P2):
         hString='CLSM1_xcoord CLSM1_ycoord CLSM2_xcoord CLSM2_ycoord'
-        np.savetxt('tmp/000_selected_points_difference_microscopy.pts',np.concatenate((P1, P2), axis = 1), header=hString)
+        np.savetxt('tmp/000_selected_points_difference_microscopy.txt',np.concatenate((P1, P2), axis = 1), header=hString)
     
-        # np.savetxt('tmp/000_confocal_data_diff_P1.pts',P1)
-        # np.savetxt('tmp/000_confocal_data_diff_P2.pts',P2)
+        # np.savetxt('tmp/000_confocal_data_diff_P1.txt',P1)
+        # np.savetxt('tmp/000_confocal_data_diff_P2.txt',P2)
     
     def loadAFMdata(self):
         try:           
@@ -994,7 +996,39 @@ class mergedata(parent_merge):
                 ax2.text(self.P[i,0],self.P[i,1],f'  P{i}', fontsize=14)
         
         fig_point.show()
-        
+
+    
+    def zoom_factory1(self,fig, base_scale = 1.1):
+        def zoom_fun(event):
+            # get the current x and y limits
+            ax = event.inaxes
+            cur_xlim = ax.get_xlim()
+            cur_ylim = ax.get_ylim()
+            xdata = event.xdata # get event x location
+            ydata = event.ydata # get event y location
+            if event.button == 'down':
+                # deal with zoom in
+                scale_factor = 1/base_scale
+            elif event.button == 'up':
+                # deal with zoom out
+                scale_factor = base_scale
+            else:
+                # deal with something that should never happen
+                scale_factor = 1
+                # print event.button
+            # set new limits
+            ax.set_xlim([xdata - (xdata-cur_xlim[0]) / scale_factor, 
+                         xdata + (cur_xlim[1]-xdata) / scale_factor]) 
+            ax.set_ylim([ydata - (ydata-cur_ylim[0]) / scale_factor, 
+                         ydata + (cur_ylim[1]-ydata) / scale_factor])
+            plt.draw() # force re-draw
+    
+        # attach the call back
+        fig.canvas.mpl_connect('scroll_event',zoom_fun)
+    
+        #return the function
+        return zoom_fun
+    
     def calibrate_confocal_and_EBSD_data(self,P_keep=0,Pc_keep=0):
         print('Waiting for user input...')
         P = self.P
@@ -1006,6 +1040,8 @@ class mergedata(parent_merge):
         ax1.set_title('EBSD data', fontsize=16)
         ax2.set_title('CLSM data', fontsize=16)
         
+        disconnect_zoom1 = self.zoom_factory1(fig) # Zooming with event mouse wheel
+
         ax1.imshow(self.Z_grid, extent=(np.min(self.X), np.max(self.X), np.min(self.Y), np.max(self.Y)),  cmap=plt.get_cmap('tab20b'), aspect = np.max(self.Y)/np.max(self.X))
         if self.Pc.shape != (2,):
             ax1.plot(self.Pc[:,0],self.Pc[:,1],'or', linewidth=3, markersize=12, alpha=0.5)
@@ -1037,8 +1073,8 @@ class mergedata(parent_merge):
                                r'in CLSM data. Repeat the same procedure for as many points as needed (4 at least).',
                                r'',
                                r'Controls:',
-                               r'Left click: Select a point  -----  Right click: Delete previously selected point',
-                               r'Lens button | Draw rectangle with LMB: Zoom in  -  Draw rectangle with RMB: Zoom out',
+                               r'Left click: Select a point ----- Right click: Delete previously selected point',
+                               r'Mouse Wheel: Zoom | Refrain from using lens button -> klicks counted as selections', # Every corner of the selected rectangles will be counted as points
                                r'Enter: Complete point selection',))
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -1049,7 +1085,10 @@ class mergedata(parent_merge):
         
         # ax2.text(.5, -0.07, textstr2, transform=ax2.transAxes, fontsize=16,
         # verticalalignment='top', horizontalalignment='center', bbox=props)
+        
+        
 
+        
         Ptmp = plt.ginput(64, timeout=520)
         Ptmp = np.asarray(Ptmp)
         P = -1*np.ones([int(len(Ptmp)+64),2])
@@ -1066,7 +1105,7 @@ class mergedata(parent_merge):
         Pc = Pc[Pc[:,0] != -1,:]
         Pt=np.append(Pc,P, axis=1)
         hString='EBSD_xcoord EBSD_ycoord CLSM_xcoord CLSM_ycoord'
-        np.savetxt('tmp/000_selected_points_merge.pts',Pt, header=hString)
+        np.savetxt('tmp/000_selected_points_merge.txt',Pt, header=hString)
         self.P = P
         self.Pc = Pc
         print('Ready for merging the data.')
@@ -1101,7 +1140,7 @@ class mergedata(parent_merge):
         print('Calculating transformation...')
         if self.P.shape == (2,):
             print('Reference points are loaded')
-            Pt=np.loadtxt('tmp/000_selected_points.pts')
+            Pt=np.loadtxt('tmp/000_selected_points.txt')
             P=Pt[:,1:]
             Pc=Pt[:,:2]
             self.P = P
