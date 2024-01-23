@@ -998,7 +998,7 @@ class mergedata(parent_merge):
         fig_point.show()
 
     
-    def zoom_factory1(self,fig, base_scale = 1.1):
+    def zoom_factory(self,fig, base_scale = 1.3):
         def zoom_fun(event):
             # get the current x and y limits
             ax = event.inaxes
@@ -1029,6 +1029,27 @@ class mergedata(parent_merge):
         #return the function
         return zoom_fun
     
+    def zoom_reset(self,fig, ax1, ax2):
+        def reset_fun(event):
+            # get the current x and y limits
+            ax = event.inaxes
+            if event.key == 'r':
+                
+                if ax == ax1:
+                    ax.set_xlim([np.min(self.X), np.max(self.X)]) 
+                    ax.set_ylim([np.min(self.Y), np.max(self.Y)])
+                
+                elif ax == ax2:
+                    ax.set_xlim([0, len(self.confocal_image[0,:])])
+                    ax.set_ylim([len(self.confocal_image[:,0]), 0]) 
+            plt.draw() # force re-draw
+    
+        # attach the call back
+        fig.canvas.mpl_connect('key_press_event',reset_fun)
+    
+        #return the function
+        return reset_fun
+    
     def calibrate_confocal_and_EBSD_data(self,P_keep=0,Pc_keep=0):
         print('Waiting for user input...')
         P = self.P
@@ -1040,7 +1061,8 @@ class mergedata(parent_merge):
         ax1.set_title('EBSD data', fontsize=16)
         ax2.set_title('CLSM data', fontsize=16)
         
-        disconnect_zoom1 = self.zoom_factory1(fig) # Zooming with event mouse wheel
+        zoomer = self.zoom_factory(fig) # Zooming with event mouse wheel
+        reset_zoomer = self.zoom_reset(fig, ax1, ax2)
 
         ax1.imshow(self.Z_grid, extent=(np.min(self.X), np.max(self.X), np.min(self.Y), np.max(self.Y)),  cmap=plt.get_cmap('tab20b'), aspect = np.max(self.Y)/np.max(self.X))
         if self.Pc.shape != (2,):
@@ -1075,6 +1097,7 @@ class mergedata(parent_merge):
                                r'Controls:',
                                r'Left click: Select a point ----- Right click: Delete previously selected point',
                                r'Mouse Wheel: Zoom | Refrain from using lens button -> klicks counted as selections', # Every corner of the selected rectangles will be counted as points
+                               r'R: Aspect reset | WARNING: Will create additional point! Remove with Right click'
                                r'Enter: Complete point selection',))
         # these are matplotlib.patch.Patch properties
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
