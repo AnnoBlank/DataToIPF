@@ -231,7 +231,7 @@ def plot_grid(frame, dtheta=None, dphi=None, linestyle=':', fig=None, ax=None):
 
     if dtheta != 0:
         x = frame_polygon[:,0]
-        xmin = np.max(x)
+        # xmin = np.max(x)
         xmax = np.max(x)
         r = np.hypot(frame_polygon[:,0], frame_polygon[:,1])
         theta = np.degrees(inverse_stereographic_projection(r))
@@ -259,9 +259,13 @@ def plot_grid(frame, dtheta=None, dphi=None, linestyle=':', fig=None, ax=None):
             r = stereographic_projection(np.radians(theta))
             circle = Circle(0., 0., r)
             points = frame.intersect(circle)
-
+            
+            if len(points) != 2:
+                continue
+            
             angle1 = np.arctan2(points[0][1], points[0][0])
             angle2 = np.arctan2(points[1][1], points[1][0])
+            # assume difference betwenn angles < 180 deg
             dangle = angle2 - angle1
             if -np.pi < dangle < 0 or dangle > np.pi:
                 angle1, angle2 = angle2, angle1
@@ -395,7 +399,6 @@ if __name__ == '__main__':
 
     plot_plane((1,-2,0), frame, '--', loc='top')
     plot_plane((1,1,-1), frame, '--', loc='bottom')
-
 
     ax.set_xlim(np.min(frame_polygon[:,0]), np.max(frame_polygon[:,0]))
     ax.set_ylim(np.min(frame_polygon[:,1]), np.max(frame_polygon[:,1]))

@@ -125,6 +125,7 @@ class EBSDdataEvaluation():
         
             
     def browse_merged_leveld_data(self):
+        self.dataPathFiles
         self.mergeDataSet = np.loadtxt(self.dataPathFiles[0])
         print('Load data set 1')
         for i in range(1,len(self.dataPathFiles)):

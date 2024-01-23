@@ -98,3 +98,38 @@ def cristalStruc(a = 3.1648, b = 3.1648, c = 3.1648, alp = 90, bet = 90, gam = 9
     Dstar = np.transpose(np.linalg.inv(D))
             
     return D, Dstar, V
+
+def princ():
+    global MA
+    phi1a=0
+    phia=0
+    phi2a=0
+
+    cristTungsten()
+
+    MA=rotation(phi1a,phia,phi2a)
+
+   
+    return MA
+
+def cristTungsten():
+    global D,Dstar,V
+    a=3.1648
+    b=3.1648
+    c=3.1648
+    alp=np.radians(90)
+    bet=np.radians(90)
+    gam=np.radians(90)
+
+    V=a*b*c*np.sqrt(1-(np.cos(alp)**2)-(np.cos(bet))**2-(np.cos(gam))**2+2*b*c*np.cos(alp)*np.cos(bet)*np.cos(gam))
+    D=np.array([[a,b*np.cos(gam),c*np.cos(bet)],[0,b*np.sin(gam),  c*(np.cos(alp)-np.cos(bet)*np.cos(gam))/np.sin(gam)],[0,0,V/(a*b*np.sin(gam))]])
+    Dstar=np.transpose(np.linalg.inv(D))
+            
+    return D,Dstar,V
+
+def init():
+    princ()
+    global D1,S,Qp
+    S=np.zeros((1,5))
+    Qp=np.zeros((1,2))
+    D1=np.zeros((1,5))
