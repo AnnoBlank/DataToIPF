@@ -676,7 +676,7 @@ class mergedata(parent_merge):
     
     def save_diff_points(self, P1, P2):
         hString='CLSM1_xcoord CLSM1_ycoord CLSM2_xcoord CLSM2_ycoord'
-        np.savetxt('tmp/000_selected_points_difference_microscopy.txt',np.concatenate((P1, P2), axis = 1), header=hString)
+        np.savetxt('tmp/000_selected_points_difference_microscopy.txt',np.concatenate((P1, P2), axis = 1), header=hString,fmt='%7.1f')
     
         # np.savetxt('tmp/000_confocal_data_diff_P1.txt',P1)
         # np.savetxt('tmp/000_confocal_data_diff_P2.txt',P2)
@@ -1037,7 +1037,7 @@ class mergedata(parent_merge):
                 
                 if ax == ax1:
                     ax.set_xlim([np.min(self.X), np.max(self.X)]) 
-                    ax.set_ylim([np.min(self.Y), np.max(self.Y)])
+                    ax.set_ylim([np.max(self.Y), np.min(self.Y)])
                 
                 elif ax == ax2:
                     ax.set_xlim([0, len(self.confocal_image[0,:])])
@@ -1128,7 +1128,8 @@ class mergedata(parent_merge):
         Pc = Pc[Pc[:,0] != -1,:]
         Pt=np.append(Pc,P, axis=1)
         hString='EBSD_xcoord EBSD_ycoord CLSM_xcoord CLSM_ycoord'
-        np.savetxt('tmp/000_selected_points_merge.txt',Pt, header=hString)
+        self.save_selected_points_merge = 'tmp/000_selected_points_merge.txt'
+        np.savetxt(self.save_selected_points_merge,Pt, header=hString,fmt='%7.1f')
         self.P = P
         self.Pc = Pc
         print('Ready for merging the data.')

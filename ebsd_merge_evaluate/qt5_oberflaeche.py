@@ -1849,7 +1849,7 @@ class Ui_MainWindow(object):
         self.loadPointsMergeButton.setText(_translate("MainWindow", "Load points for merging process"))
         self.mergeSelectPoints.setText(_translate("MainWindow", "Select points for merging process"))
         self.mergeCalculateMerge.setText(_translate("MainWindow", "Calculating and merging"))
-        self.label_5.setText(_translate("MainWindow", "Delete data points over picture (optional) --> Color set to white (>=254 in 8bit) will be removed"))
+        self.label_5.setText(_translate("MainWindow", "Delete data points over picture (optional) --> Only black marked areas will be evaluated"))
         self.mergeDeleteEBSDcheckBox.setText(_translate("MainWindow", "EBSD coordinates"))
         self.mergeDeleteCLSMcheckBox.setText(_translate("MainWindow", "Data coordinates e.g. CLSM"))
         self.mergeDeleteDataPic.setText(_translate("MainWindow", "Load areas for data removing"))

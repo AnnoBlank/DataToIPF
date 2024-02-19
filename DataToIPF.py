@@ -268,7 +268,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         os.makedirs('tmp', exist_ok=True)
             
         # Initialize logfiles
-        self.logfile_merge = open(os.path.join('tmp', 'logfile_merging.log'), 'w')
         self.logfile_eval = open(os.path.join('tmp', 'logfile_evaluating.log'), 'w')
         
     def addTextprint_logger(self, new_text):
@@ -871,6 +870,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         file.writelines(text+'\n')
     
     def createLogMergeSave(self):
+        self.logfile_merge = open(os.path.join('tmp', 'logfile_merging.log'), 'w')
+        
         EBSD_file = self.loadEBSDline.text()
         
         self.logNewHead(self.logfile_merge, 'Data Merging')
@@ -910,12 +911,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.logNewHead(self.logfile_merge, 'Merging Options')
         if self.manual_selection:
             self.logNewLine(self.logfile_merge, 'Points manually selected')
+            self.logNewLine(self.logfile_merge, f'Written to path:\t{self.mergedata.save_selected_points_merge}')
         elif self.read_in_selection:
             self.logNewLine(self.logfile_merge, 'Points read in from file')
-        self.logNewLine(self.logfile_merge, f'Used path:\t{self.loading_pointsFileName}')
+            self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
         self.logNewLine(self.logfile_merge, '')
         self.logNewLine(self.logfile_merge, f'Merged savepath:\t{self.merge_save_path}.dat')
         
+        self.logfile_merge.close()
         
 #%%
     def tabEvaluateCLSM(self): 
@@ -1852,6 +1855,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.loadAFMdataThread() 
 #%%
 if __name__ == "__main__":
+    print('Program has launched!')
     global ui
     mp.freeze_support()
 
