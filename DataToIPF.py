@@ -55,26 +55,26 @@ class PrintLogger(QObject):
     
 # create second interactive window for the case of point selection options
 class SecondWindow(QtWidgets.QMainWindow):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__()
-
         self.resize(640, 640)
-
-        labels_data = [("EBSDcolumn", "EBSD", (200, 20, 89, 23)),
-                       ("CLSMcolumn", "CLSM", (350, 20, 89, 23))]
-
-        buttons_data = [("pushButton", "Select new points", (20, 580, 181, 41)),
-                        ("pushButton_2", "Save", (340, 580, 181, 41))]
-
-        self.create_widgets(labels_data, QtWidgets.QLabel)
-        self.create_widgets(buttons_data, QtWidgets.QPushButton)
-
-    def create_widgets(self, data, widget_type):
-        for obj_name, text, geometry in data:
-            widget = widget_type(self)
-            widget.setGeometry(QRect(*geometry))
-            widget.setObjectName(obj_name)
-            widget.setText(text)
+        self.label = QtWidgets.QLabel(self)
+        self.label.setGeometry(QRect(200, 20, 89, 23))
+        self.label.setObjectName("EBSDcolumn")
+        self.label_2 = QtWidgets.QLabel(self)
+        self.label_2.setGeometry(QRect(350, 20, 89, 23))
+        self.label_2.setObjectName("CLSMcolumn")
+        self.label.setText( "EBSD")
+        self.label_2.setText( "CLSM")
+        
+        self.pushButton = QtWidgets.QPushButton(self)
+        self.pushButton.setGeometry(QRect(20, 580, 181, 41))
+        self.pushButton.setObjectName("pushButton")
+        self.pushButton_2 = QtWidgets.QPushButton(self)
+        self.pushButton_2.setGeometry(QRect(340, 580, 181, 41))
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.pushButton.setText("Select new points")
+        self.pushButton_2.setText("Save")
 
 class popupWindow(QDialog):
     def __init__(self, name, parent=None):
@@ -695,6 +695,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('No EBSD data')
 
     def select_points(self):
+        print(not self.read_in_selection)
+        print(self.ebsd_loaded)
+        print(len(self.mergedata.confocal_data) == 2)
+        print(len(self.mergedata.confocal_data) != 2 )
+        print(self.mergedata.P.shape == (2,))
+        print(self.loading_points==1)
         if not self.read_in_selection:
             self.manual_selection=True
         self.dataMergeProgressBar.setMaximum(0)
@@ -705,7 +711,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             elif len(self.mergedata.confocal_data) != 2 :
                 if self.mergedata.P.shape == (2,):
                     self.dataMergeProgressBar.setMaximum(100)
-    
                     if(self.loading_points==1):
                         self.mergedata.load_points_merge(self.loading_pointsFileName)
                         self.manual_selection = False
@@ -739,7 +744,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.dialog.checkBox = []
         self.dialog.labelEBSDcoordinate = []
         self.dialog.labelCLSMcoordinate = []
-        for i in range(len(self.mergedata.P)):
+        for i in range(len(self.mergedata.P)): #This loop creates one tickable box for each preselected point
 
             self.dialog.checkBox.append(QtWidgets.QCheckBox(self.dialog))
             self.dialog.checkBox[i].setGeometry(QRect(40, 70+40*i, 61, 23))
@@ -756,7 +761,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
 
             self.dialog.labelEBSDcoordinate[i].setText(f'x ={int(self.mergedata.P[i,0])} / y= {int(self.mergedata.P[i,1])}')
             self.dialog.labelCLSMcoordinate[i].setText(f'x ={int(self.mergedata.Pc[i,0])} / y= {int(self.mergedata.Pc[i,1])}')
-        
+            
         self.mergedata.calibrate_confocal_and_EBSD_data_image()
         self.dialog.pushButton.clicked.connect(self.select_points_window_select)
         self.dialog.pushButton_2.clicked.connect(self.select_points_window_save)
