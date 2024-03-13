@@ -149,14 +149,14 @@ class parent_merge(QObject):
             self.affine_transformation(P1, P2, leveling, levelplotrange)
 
         except:
-            print('CLSM data difference failed')
+            print('CLSM auto difference failed')
 
 
-    def load_confocal_data_diff_plt(self,leveling=1,levelplotrange=1,):
+    def load_confocal_data_diff_plt(self,leveling=1,levelplotrange=1, followup_selection = True):
         try:
             figdiff, ((ax1), (ax2)) = plt.subplots(1, 2)
             mng = plt.get_current_fig_manager()
-            mng.resize(1800,800)
+            mng.resize(1500,1000)
             ax2.imshow(self.confocal_image_data_1)
             ax2.set_title('CLSM data2', fontsize=16)
             ax1.imshow(self.confocal_image_data_2)
@@ -164,41 +164,48 @@ class parent_merge(QObject):
             self.confocal_data_1 = np.flipud(np.rot90(self.confocal_data_1))
             self.confocal_data_2 = np.flipud(np.rot90(self.confocal_data_2))
             
-            # textstr2 = '\n'.join((r'Left click: Select a point  -----  Right click: Delete the previously selected point', 
-            #                               r'Enter: Complete point selection',))
-                        #                  r'Find the position (e.g. in total 4 positions) in both pictures'
-            textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in EBSD data than',
-                                   r'in CLSM data. Repeat the same procedure for as many points as needed (4 at least).',
-                                   r'',
-                                   r'Controls:',
-                                   r'Left click: Select a point ----- Right click: Delete previously selected point',
-                                   r'Mouse Wheel: Zoom | Refrain from using lens button -> klicks counted as selections', # Every corner of the selected rectangles will be counted as points
-                                   r'Enter: Complete point selection',))
+            zoomer = self.zoom_factory(figdiff) # Zooming with event mouse wheel
+            # reset_zoomer = self.zoom_reset(figdiff, ax1, ax2)
             
-            # these are matplotlib.patch.Patch properties
-            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            if followup_selection:
+                # textstr2 = '\n'.join((r'Left click: Select a point  -----  Right click: Delete the previously selected point', 
+                #                               r'Enter: Complete point selection',))
+                            #                  r'Find the position (e.g. in total 4 positions) in both pictures'
+                textstr1 =  '\n'.join((r'Please select the points at indentical features. First select point in left CLSM data than',
+                                       r'in right CLSM data. Repeat the same procedure for as many points as needed (4 at least).',
+                                       r'',
+                                       r'Controls:',
+                                       r'Left click: Select a point ----- Right click: Delete previously selected point',
+                                       r'Mouse Wheel: Zoom | Refrain from using lens button -> klicks counted as selections', # Every corner of the selected rectangles will be counted as points
+                                       r'Enter: Complete point selection',
+                                       ))
+                
+                # these are matplotlib.patch.Patch properties
+                props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        
+                # place a text box in upper left in axes coords
+                ax1.text(.5, -0.1, textstr1, transform=ax1.transAxes, #fontsize=12,
+                                 verticalalignment='top', bbox=props)
+        
+                # ax2.text(-0.1, -0.05, textstr2, transform=ax2.transAxes, fontsize=12,
+                #                  verticalalignment='top', bbox=props)
+                
+            
+                Ptmp = figdiff.ginput(32, timeout=-1)
+                Ptmp = np.asarray(Ptmp)
+                plt.close(figdiff)
+                P1 = np.zeros([int(len(Ptmp)/2),2])
+                P2 = np.zeros([int(len(Ptmp)/2),2])
     
-            # place a text box in upper left in axes coords
-            ax1.text(.5, -0.1, textstr1, transform=ax1.transAxes, #fontsize=12,
-                             verticalalignment='top', bbox=props)
-    
-            # ax2.text(-0.1, -0.05, textstr2, transform=ax2.transAxes, fontsize=12,
-            #                  verticalalignment='top', bbox=props)
-
-            Ptmp = figdiff.ginput(32, timeout=-1)
-            Ptmp = np.asarray(Ptmp)
-            plt.close(figdiff)
-            P1 = np.zeros([int(len(Ptmp)/2),2])
-            P2 = np.zeros([int(len(Ptmp)/2),2])
-
-            for i in range(int(len(Ptmp)/2)):
-                P1[i,:] = Ptmp[int(i*2),:]
-                P2[i,:] = Ptmp[int(i*2)+1,:]
-            
-            self.save_diff_points(P1, P2)
-            
-            self.affine_transformation(P1, P2, leveling, levelplotrange)
-
+                for i in range(int(len(Ptmp)/2)):
+                    P1[i,:] = Ptmp[int(i*2),:]
+                    P2[i,:] = Ptmp[int(i*2)+1,:]
+                
+                self.save_diff_points(P1, P2)
+                
+                self.affine_transformation(P1, P2, leveling, levelplotrange)
+            # else:
+            #     plt.show()
         except:
             print('CLSM data difference failed')
             
@@ -293,46 +300,98 @@ class parent_merge(QObject):
         
         return m,n,dataouttmp
         
-            
-    def load_confocal_data_diff(self):
+    
+    def render_confocal_data(self):
+        CLSM_set = self.CLSM_render_set
         try:
-            rotation_data_1 = self.deg_to_rot(int(self.mergeroationCLSM2))
-            rotation_data_2 = self.deg_to_rot(int(self.mergeroationCLSM1))
+            if CLSM_set == 0:
+                file_name =  self.loadCLSM1line
+            elif CLSM_set == 1:
+                file_name =  self.loadCLSM2line
             
-            file_name1 =  self.loadCLSM2line
-            file_name2 =  self.loadCLSM1line
+            anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
+            anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
+            confocal_data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
+            confocal_data = confocal_data[:, 1:]
+                        
+            if CLSM_set == 0:
+                if self.CLSM1checkBox == 2:
+                    confocal_data = confocal_data[::-1, :]
+                rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
+                self.confocal_data_1 = np.rot90(confocal_data, k = rotation_data)
+                print('Render CLSM 1....................')
+                self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
                 
-    
-            anzahlrows =  np.loadtxt(file_name1, delimiter=',', skiprows=25, usecols=[5])
-            anzahlColums = np.loadtxt(file_name1, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
-            self.confocal_data_1 = np.loadtxt(file_name1, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
-            self.confocal_data_1 = self.confocal_data_1[:, 1:]
-            
-            if self.CLSM2checkBox == 2:
-                self.confocal_data_1 = self.confocal_data_1[::-1, :]
+            elif CLSM_set == 1:
+                if self.CLSM2checkBox == 2:
+                    confocal_data = confocal_data[::-1, :]
 
-            self.confocal_data_1 = np.rot90(self.confocal_data_1, k = rotation_data_1)
-            anzahlrows =  np.loadtxt(file_name2, delimiter=',', skiprows=25, usecols=[5])
-            anzahlColums = np.loadtxt(file_name2, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
-            self.confocal_data_2 = np.loadtxt(file_name2, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
-            self.confocal_data_2 = self.confocal_data_2[:, 1:]
-    
-            
-            if self.CLSM1checkBox == 2:
-                self.confocal_data_2 = self.confocal_data_2[::-1, :]
-            
-            self.confocal_data_2 = np.rot90(self.confocal_data_2, k = rotation_data_2)
-            
-            print('Data2_Load................')
-            self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
-            print('Render_Data_1_....................')
-            self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
-            print('Render_Data2_..........................')
-            
+                rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
+                self.confocal_data_2 = np.rot90(confocal_data, k = rotation_data)
+                print('Render CLSM 2....................')
+                self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
         except:
-            print('CLSM1 and 2 data load failed')
+            if CLSM_set == 0:
+                print('CLSM 1 load failed')
+            elif CLSM_set == 1:
+                print('CLSM 2 load failed')
             
-        if self.threading_true: self.finished.emit()    
+        if self.threading_true: self.finished.emit()   
+        
+        
+    def load_confocal_data_diff(self):
+        for CLSM_set in range(2):
+            try:
+                if CLSM_set == 0:
+                    # if self.CLSM1_rendered: continue;
+                    file_name =  self.loadCLSM2line
+                elif CLSM_set == 1:
+                    # if self.CLSM2_rendered: continue;
+                    file_name =  self.loadCLSM1line
+                
+                anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
+                anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
+                confocal_data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
+                confocal_data = confocal_data[:, 1:]
+                
+                if CLSM_set == 0:
+                    if self.CLSM2checkBox == 2:
+                        confocal_data = confocal_data[::-1, :]
+    
+                    rotation_data = self.deg_to_rot(int(self.mergeroationCLSM2))
+                    self.confocal_data_1 = np.rot90(confocal_data, k = rotation_data)
+                    print('Render CLSM 1....................')
+                    self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
+                    
+                elif CLSM_set == 1:
+                    if self.CLSM1checkBox == 2:
+                        confocal_data = confocal_data[::-1, :]
+    
+                    rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
+                    self.confocal_data_2 = np.rot90(confocal_data, k = rotation_data)
+                    print('Render CLSM 2....................')
+                    self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
+            # file_name2 =  self.loadCLSM1line
+            
+            # anzahlrows =  np.loadtxt(file_name2, delimiter=',', skiprows=25, usecols=[5])
+            # anzahlColums = np.loadtxt(file_name2, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
+            # self.confocal_data_2 = np.loadtxt(file_name2, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
+            # self.confocal_data_2 = self.confocal_data_2[:, 1:]
+    
+            # if self.CLSM1checkBox == 2:
+            #     self.confocal_data_2 = self.confocal_data_2[::-1, :]
+            
+            # rotation_data_2 = self.deg_to_rot(int(self.mergeroationCLSM1))
+            # self.confocal_data_2 = np.rot90(self.confocal_data_2, k = rotation_data_2)
+            # print('Render CLSM 2....................')
+            # self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
+            except:
+                if CLSM_set == 0:
+                    print('CLSM 1 load failed')
+                elif CLSM_set == 1:
+                    print('CLSM 2 load failed')
+                
+            if self.threading_true: self.finished.emit()    
             
             
     def deg_to_rot(self, rot = 0):
@@ -452,11 +511,11 @@ class mergeThread(parent_merge):
             
             self.confocal_data_2 = np.rot90(self.confocal_data_2, k = rotation_data_2)
             
-            print('Data2_Load................')
+            # print('Data2_Load................')
             self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
-            print('Render_Data_1_....................')
+            print('Render Data 1....................')
             self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
-            print('Render_Data2_..........................')
+            print('Render Data 2....................')
             self.finished.emit()
 
 
@@ -736,11 +795,11 @@ class mergedata(parent_merge):
             
             self.confocal_data_2 = np.rot90(self.confocal_data_2, k = rotation_data_2)
             
-            print('Data2_Load................')
+            # print('Data2_Load................')
             self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
-            print('Render_Data_1_....................')
+            print('Render Data 1....................')
             self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
-            print('Render_Data2_..........................')
+            print('Render Data 2....................')
             self.finished.emit()
 
     #%%
@@ -978,7 +1037,7 @@ class mergedata(parent_merge):
     def calibrate_confocal_and_EBSD_data_image(self):
         fig_point, ((ax1), (ax2)) = plt.subplots(1, 2)
         mng = plt.get_current_fig_manager()
-        mng.resize(1800,800)
+        mng.resize(1500,800)
         ax1.set_title('EBSD data', fontsize=16)
         ax2.set_title('CLSM data', fontsize=16)
         
@@ -1057,7 +1116,7 @@ class mergedata(parent_merge):
         
         fig, ((ax1), (ax2)) = plt.subplots(1, 2)
         mng = plt.get_current_fig_manager()
-        mng.resize(1800,800)
+        mng.resize(1500,800)
         ax1.set_title('EBSD data', fontsize=16)
         ax2.set_title('CLSM data', fontsize=16)
         

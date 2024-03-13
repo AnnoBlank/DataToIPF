@@ -228,16 +228,24 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         super().__init__()
 
         # Initialize class attributes
-        self.select_points_status = 0
-        self.data_merge_clsm_single = 0
+        self.select_points_status = False
+        self.data_merge_clsm_single = False
         self.data_merge_afm_single = 0 
-        self.select_point_for_diff = 0
+        self.select_point_for_diff = False
         self.ebsd_loaded = False
-        self.loading_points = 0
+        self.loading_points = False
+        self.CLSM1_rendered = False
+        self.CLSM2_rendered = False
+        
         self.setupUi(MainWindow)
         self.thread = 0
-        self.manual_selection = False
-        self.read_in_selection = False
+        
+        self.EBSD_CLSM_manual_selection = False
+        self.EBSD_CLSM_read_in = False
+        
+        self.CLSM12_manual_selection = False
+        self.CLSM12_read_in = False
+        
         self.loading_pointsFileName = 'tmp/000_selected-points.txt'
         self.merge_save_path = ''
 
@@ -279,7 +287,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergesubstractCLSM12.clicked.connect(self.browse_CLSM_substract_norm)
         self.autoSubstract.clicked.connect(self.browse_CLSM_substract_auto)
         self.loadsubstractCLSM12.clicked.connect(self.browse_CLSM_substract_file)
-        self.mergeviewCLSM.clicked.connect(self.browse_merge_view_CLSM)
+        self.mergeviewCLSM.clicked.connect(self.browse_view_CLSM12)
         
         self.mergeloadEBSD.clicked.connect(self.browse_button_EBSD)
         self.phaseEBSD.textChanged.connect(self.ebsd_phase_changed)
@@ -287,7 +295,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.loadPointsMergeButton.clicked.connect(self.browse_load_points_merge)
         self.mergeSelectPoints.clicked.connect(self.select_points)
         self.mergeCalculateMerge.clicked.connect(self.merge_calc)
+        
+        self.mergeviewCLSM.setEnabled(False)
+        self.autoSubstract.setEnabled(False)
+        self.mergesubstractCLSM12.setEnabled(False)
+        self.loadsubstractCLSM12.setEnabled(False)
         self.mergeCalculateMerge.setEnabled(False)
+        
         self.mergeSelectArea.clicked.connect(self.area_zero_level_button)
         self.mergeDeleteDataPic.clicked.connect(self.browse_load_pic_data)
         self.mergeSave.clicked.connect(self.merge_save_data)
@@ -314,17 +328,19 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.popup.setGeometry(1200, 600, 240, 70)
         self.popup.show()
 
-    def browse_merge_view_CLSM(self):
+    def browse_view_CLSM12(self):
         if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
-            self.load_clsm_data_thread()
-        elif (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0):
+            self.load_clsm_data_thread(followup_selection = False)
+        elif (len(self.mergedata.confocal_data) == 2 or not self.data_merge_clsm_single):
             self.load_clsm_data_thread()
             self.thread.finished.connect(self.mergedata.view_confocal_data)
 
         else:
             self.mergedata.view_confocal_data()           
         
-    def load_clsm_data_thread(self, mode = 'norm'):   
+    def load_clsm_data_thread(self, followup_selection = True):   
+        self.followup_selection = followup_selection
+        
         self.dataMergeProgressBar.setMaximum(0)
         self.worker = merge.mergeThread()
         self.thread = QThread()
@@ -334,7 +350,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.worker.leveling = self.mergeLevelingcheckBox.checkState()
         
         if (self.loadCLSM1line.text() == '' or self.loadCLSM2line.text() == ''):
-            if (len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 0):
+            if (len(self.mergedata.confocal_data) == 2 or not self.data_merge_clsm_single):
                 if not self.loadCLSM1line.text():
                     self.worker.loadCLSM1line =  self.loadCLSM2line.text()
                     self.worker.mergeroationCLSM1 = self.mergeroationCLSM2.currentText()[:-1]
@@ -346,8 +362,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                     
                 self.thread.started.connect(self.worker.load_confocal_data)
                 self.thread.start()
-                self.data_merge_clsm_single = 1
+                self.data_merge_clsm_single = True
+                
                 self.mergeviewCLSM.setEnabled(False)
+                self.autoSubstract.setEnabled(False)
+                self.mergesubstractCLSM12.setEnabled(False)
+                self.loadsubstractCLSM12.setEnabled(False)
                 
                 self.thread.finished.connect(self.load_clsm_data_thread_finished) 
 
@@ -356,28 +376,26 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.mergedata.view_confocal_data()
                 self.dataMergeProgressBar.setMaximum(100)
         else:
-            if len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single == 1:
+            if len(self.mergedata.confocal_data) == 2 or self.data_merge_clsm_single:
                 self.worker.loadCLSM1line =  self.loadCLSM1line.text()
                 self.worker.loadCLSM2line =  self.loadCLSM2line.text()
                 self.worker.mergeroationCLSM1 = self.mergeroationCLSM1.currentText()[:-1]
                 self.worker.mergeroationCLSM2 = self.mergeroationCLSM2.currentText()[:-1]
                 self.worker.CLSM1checkBox = self.CLSM1checkBox.checkState()
                 self.worker.CLSM2checkBox = self.CLSM2checkBox.checkState()
+                self.worker.CLSM1_rendered = self.CLSM1_rendered
+                self.worker.CLSM2_rendered = self.CLSM2_rendered
                 
                 self.thread.started.connect(self.worker.load_confocal_data_diff)
                 self.thread.start()
-                self.data_merge_clsm_single = 0
-                self.select_point_for_diff = 1
-                self.mergeviewCLSM.setEnabled(False)
+                self.data_merge_clsm_single = False
+                self.select_point_for_diff = True
                 
-                if mode == 'norm':
-                    self.thread.finished.connect(self.load_clsm1_2_data_thread_finished) 
-                elif mode == 'auto':
-                    self.thread.finished.connect(self.load_auto_clsm_data_thread_finished)
-                elif mode == 'load':
-                    self.thread.finished.connect(self.load_auto_clsm_data_thread_finished_from_file)
-                else:
-                    print('Unknown mode!')
+                self.mergeviewCLSM.setEnabled(False)
+                self.autoSubstract.setEnabled(False)
+                self.mergesubstractCLSM12.setEnabled(False)
+                self.loadsubstractCLSM12.setEnabled(False)
+
 
             else:
                 self.mergedata.view_confocal_data()
@@ -386,7 +404,16 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
 
     def  load_clsm_data_thread_finished(self):
         self.dataMergeProgressBar.setMaximum(100)
+        
         self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
         
         if self.worker.leveling != 0:
             plt.imshow(np.flipud(np.rot90(self.worker.Zebene, 1)))
@@ -403,12 +430,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data = self.worker.confocal_data 
         self.mergedata.confocal_image = self.worker.confocal_image
         self.clean_up_thread()
-        
-        if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
-            self.select_points_status = 0
-        elif self.select_points_status == 1:
-            self.select_points_status = 0
-            self.select_points()
+        self.select_points_status = False
+
+        # if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
+        #     self.select_points_status = False
+        # elif self.select_points_status:
+        #     self.select_points_status = False
+        #     self.select_points()
     
     def plot_confocal(self, data, file_name):
         plt.imshow(np.flipud(np.rot90(data, 1)))
@@ -422,8 +450,39 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.thread.deleteLater()
         self.thread = None
         
-    def load_clsm1_2_data_thread_finished(self):
+    def rendering_clsm1_2_data_thread_finished(self):
         self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+            
+        self.dataMergeProgressBar.setMaximum(100)
+        
+        self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
+        self.mergedata.confocal_data_2 = self.worker.confocal_data_2
+        self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
+        self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
+                    
+        self.clean_up_thread()  
+        self.select_points_status = False    
+        
+    def load_clsm1_2_data_thread_finished(self):
+        
+        self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+            
         self.dataMergeProgressBar.setMaximum(100)
         
         self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
@@ -431,36 +490,54 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
         
-        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState())      
+        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState(), followup_selection = self.followup_selection)      
             
         self.clean_up_thread()  
-        
-        if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
-            self.select_points_status = 0
-        else:
-            if self.select_points_status == 1:
-                self.select_points_status = 0
-                self.select_points()
+        self.select_points_status = False
+
+        # if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
+        #     self.select_points_status = False
+        # else:
+        #     if self.select_points_status:
+        #         self.select_points_status = False
+        #         self.select_points()
                 
     def  load_auto_clsm_data_thread_finished(self):
-        
         self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+            
         self.dataMergeProgressBar.setMaximum(100)
+        
         self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
+        
         self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())      
             
-        self.worker.deleteLater
-        self.thread.deleteLater
-        self.thread = 0
-        self.select_points_status = 0
+        self.clean_up_thread() 
+        self.select_points_status = False
                 
     def  load_auto_clsm_data_thread_finished_from_file(self):
         file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true=True)
         
         self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+        
         self.dataMergeProgressBar.setMaximum(100)
         self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
@@ -468,14 +545,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
         self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
             
-        self.worker.deleteLater
-        self.thread.deleteLater
-        self.thread = 0
-        if (self.loadCLSM1line.text() == '' and self.loadCLSM2line.text() == ''):
-            self.select_points_status = 0
-        else:
-            if self.select_points_status == 1:
-                self.select_points_status = 0
+        self.clean_up_thread() 
+        self.select_points_status = False
         
     def browse_button_master(self, cap, fil, save = False, tmp_true = False, name_suggestion = ''):
         if tmp_true:
@@ -507,21 +578,49 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeloadEBSD.setStyleSheet(self.color_click_on)
             self.ebsd_loaded = False
     
+    # def browse_button_CLSM_1(self):
+    #     file_name = self.browse_button_master('CLSM csv File', 'CLSM CSV File (*.csv)')
+
+    #     self.loadCLSM1line.setText(file_name)
+    #     # self.loadPicDataline.setText('')
+    #     if file_name:
+    #         # self.mergeloadPicData.setStyleSheet(self.color_click_on)
+    #         self.mergeloadCLSM1.setStyleSheet(self.green)
+    #         self.mergeSelectPoints.setStyleSheet(self.color_click_on)
+    #         self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+    #     else:
+    #         self.mergeloadCLSM1.setStyleSheet(self.color_click_on)
+            
+    #     self.mergeviewCLSM.setEnabled(True)
+    #     if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+    #         self.autoSubstract.setEnabled(True)
+    #         self.mergesubstractCLSM12.setEnabled(True)
+    #         self.loadsubstractCLSM12.setEnabled(True)
+    #     else:
+    #         self.autoSubstract.setEnabled(False)
+    #         self.mergesubstractCLSM12.setEnabled(False)
+    #         self.loadsubstractCLSM12.setEnabled(False)
+
     def browse_button_CLSM_1(self):
         file_name = self.browse_button_master('CLSM csv File', 'CLSM CSV File (*.csv)')
-
+        self.CLSM1_rendered = False
+        
         self.loadCLSM1line.setText(file_name)
         # self.loadPicDataline.setText('')
         if file_name:
             # self.mergeloadPicData.setStyleSheet(self.color_click_on)
+            
+            self.render_clsm_data(CLSM_render_set = 0)
             self.mergeloadCLSM1.setStyleSheet(self.green)
             self.mergeSelectPoints.setStyleSheet(self.color_click_on)
             self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
         else:
             self.mergeloadCLSM1.setStyleSheet(self.color_click_on)
             
+            
     def browse_button_CLSM_2(self):
         file_name = self.browse_button_master('CLSM csv File', 'CLSM CSV File (*.csv)')
+        self.CLSM2_rendered = False
         
         self.loadCLSM2line.setText(file_name)
         # self.loadPicDataline.setText('')
@@ -530,10 +629,20 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         else:
             self.mergeloadCLSM2.setStyleSheet(self.color_optional)
         
+        self.mergeviewCLSM.setEnabled(True)
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+        
     def browse_load_points_merge(self):
         file_name = self.browse_button_master('Matching Points .txt File', 'EBSD-CLSM Matching Points File (*.txt)', tmp_true = True)
         
-        self.loading_points=1
+        self.loading_points = True
         self.loading_pointsFileName = file_name
         
         if file_name:
@@ -544,7 +653,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def browse_load_points_diff(self):
         file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true = True)
         
-        # self.loading_points=1
+        # self.loading_points = True
         # self.loading_pointsFileName = file_name
         
         if file_name:
@@ -620,15 +729,31 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         file_name = self.browse_button_master('Comparison IPF file', 'Merged IPF file .dat (*.dat)')
         
         self.optLoadDataButtonLineEdit.setText(file_name)   
-                        
-    def browse_CLSM_substract_norm(self):
-        self.load_clsm_data_thread(mode = 'norm')
+              
+    def load_clsm1_2_data_thread_finished_finished(self):
+        self.rendering_clsm1_2_data_thread_finished()
+        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState())
         
+    def load_auto_clsm1_2_data_thread_finished_finished(self):
+        self.rendering_clsm1_2_data_thread_finished()
+        self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())
+    
+    def load_auto_clsm_data_thread_finished_from_file_finished(self):
+        self.rendering_clsm1_2_data_thread_finished()
+        file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true=True)
+        self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
+    
+    def browse_CLSM_substract_norm(self):
+        self.load_clsm_data_thread()
+        self.thread.finished.connect(self.load_clsm1_2_data_thread_finished_finished)
+
     def browse_CLSM_substract_auto(self):
-        self.load_clsm_data_thread(mode = 'auto')
+        self.load_clsm_data_thread()
+        self.thread.finished.connect(self.load_auto_clsm1_2_data_thread_finished_finished)
         
     def browse_CLSM_substract_file(self):
-        self.load_clsm_data_thread(mode = 'load')
+        self.load_clsm_data_thread()
+        self.thread.finished.connect(self.load_auto_clsm_data_thread_finished_from_file_finished)
         
     def ebsd_phase_changed(self):
         if self.ebsd_loaded and (self.phaseEBSD.text() !=''):
@@ -667,6 +792,60 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         # else:
             # print('EBSD data is loaded')
         
+    def render_clsm_data(self, CLSM_render_set):
+        self.workerclsm = merge.mergeThread()
+        self.workerclsm.CLSM_render_set = CLSM_render_set
+        
+        self.threadclsm = QThread()
+        self.workerclsm.moveToThread(self.threadclsm)
+        self.workerclsm.finished.connect(self.threadclsm.quit)
+        self.workerclsm.fileNameEBSD =  self.loadEBSDline.text()
+        self.workerclsm.phaseEBSD = self.phaseEBSD.text()
+        
+        self.workerclsm.loadCLSM1line =  self.loadCLSM1line.text()
+        self.workerclsm.loadCLSM2line =  self.loadCLSM2line.text()
+        self.workerclsm.mergeroationCLSM1 = self.mergeroationCLSM1.currentText()[:-1]
+        self.workerclsm.mergeroationCLSM2 = self.mergeroationCLSM2.currentText()[:-1]
+        self.workerclsm.CLSM1checkBox = self.CLSM1checkBox.checkState()
+        self.workerclsm.CLSM2checkBox = self.CLSM2checkBox.checkState()
+        
+        
+        self.threadclsm.started.connect(self.workerclsm.render_confocal_data)
+        self.threadclsm.start()
+        
+        
+        self.mergeviewCLSM.setEnabled(False)
+        self.autoSubstract.setEnabled(False)
+        self.mergesubstractCLSM12.setEnabled(False)
+        self.loadsubstractCLSM12.setEnabled(False)
+        
+        self.dataMergeProgressBar.setMaximum(0)
+        
+        self.CLSM_render_set = CLSM_render_set
+        self.threadclsm.finished.connect(self.render_clsm_data_thread_finished)
+    
+    def render_clsm_data_thread_finished(self):
+        if self.thread == 0:
+            self.dataMergeProgressBar.setMaximum(100)
+        
+        self.mergeviewCLSM.setEnabled(True)
+        
+        if self.CLSM_render_set==0:
+            self.CLSM1_rendered = True
+            
+        elif self.CLSM_render_set==1:
+            self.CLSM2_rendered = True
+
+        if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            self.autoSubstract.setEnabled(True)
+            self.mergesubstractCLSM12.setEnabled(True)
+            self.loadsubstractCLSM12.setEnabled(True)
+        else:
+            self.autoSubstract.setEnabled(False)
+            self.mergesubstractCLSM12.setEnabled(False)
+            self.loadsubstractCLSM12.setEnabled(False)
+        
+        
     def load_ebsd_data_thread_finished(self):
         if self.thread == 0:
             self.dataMergeProgressBar.setMaximum(100)
@@ -695,28 +874,28 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('No EBSD data')
 
     def select_points(self):
-        print(not self.read_in_selection)
-        print(self.ebsd_loaded)
-        print(len(self.mergedata.confocal_data) == 2)
-        print(len(self.mergedata.confocal_data) != 2 )
-        print(self.mergedata.P.shape == (2,))
-        print(self.loading_points==1)
-        if not self.read_in_selection:
-            self.manual_selection=True
+        # print(not self.EBSD_CLSM_read_in)
+        # print(self.ebsd_loaded)
+        # print(len(self.mergedata.confocal_data) == 2)
+        # print(len(self.mergedata.confocal_data) != 2 )
+        # print(self.mergedata.P.shape == (2,))
+        # print(self.loading_points)
+        
+
         self.dataMergeProgressBar.setMaximum(0)
         if self.ebsd_loaded:
             if len(self.mergedata.confocal_data) == 2:
                 self.load_clsm_data_thread()
-                self.select_points_status = 1
+                self.select_points_status = True
             elif len(self.mergedata.confocal_data) != 2 :
                 if self.mergedata.P.shape == (2,):
                     self.dataMergeProgressBar.setMaximum(100)
-                    if(self.loading_points==1):
+                    if self.loading_points:
                         self.mergedata.load_points_merge(self.loading_pointsFileName)
-                        self.manual_selection = False
-                        self.read_in_selection = True
-                        self.loading_points=0
+                        self.read_in = True
+                        self.loading_points = False
                     else:
+                        self.EBSD_CLSM_manual_selection=True
                         self.mergedata.calibrate_confocal_and_EBSD_data()
                     
                     if self.mergedata.P.shape != (2,):
@@ -914,12 +1093,17 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.logNewLine(self.logfile_merge, '')
         
         self.logNewHead(self.logfile_merge, 'Merging Options')
-        if self.manual_selection:
+        
+        if self.EBSD_CLSM_manual_selection and self.EBSD_CLSM_read_in:
+            self.logNewLine(self.logfile_merge, 'Points partially manually selected and read in from file')
+            self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
+        elif self.EBSD_CLSM_manual_selection:
             self.logNewLine(self.logfile_merge, 'Points manually selected')
-            self.logNewLine(self.logfile_merge, f'Written to path:\t{self.mergedata.save_selected_points_merge}')
-        elif self.read_in_selection:
+        elif self.EBSD_CLSM_read_in:
             self.logNewLine(self.logfile_merge, 'Points read in from file')
             self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
+        self.logNewLine(self.logfile_merge, f'Final selection written to path:\t{self.mergedata.save_selected_points_merge}')
+        
         self.logNewLine(self.logfile_merge, '')
         self.logNewLine(self.logfile_merge, f'Merged savepath:\t{self.merge_save_path}.dat')
         
@@ -1765,7 +1949,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #             self.threadAFM.start()
 
     #             self.data_merge_afm_single = 0
-    #             self.select_point_for_diff = 1
+    #             self.select_point_for_diff = True
     #             self.mergeviewAFM.setEnabled(False)
     #             self.dataMergeProgressBar.setMaximum(0)
     #             self.threadAFM.finished.connect(self.loadAFM12DataThreadFinished)
@@ -1783,8 +1967,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.workerAFM.deleteLater
     #     self.threadAFM.deleteLater
     #     self.thread = 0
-    #     if self.select_points_status == 1:
-    #         self.select_points_status = 0
+    #     if self.select_points_status:
+    #         self.select_points_status = False
     #         self.select_points()
             
     # def loadAFMdataThreadFinished(self):
@@ -1815,8 +1999,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.workerAFM.deleteLater
     #     self.threadAFM.deleteLater
     #     self.threadAFM = 0
-    #     if self.select_points_status == 1:
-    #         self.select_points_status = 0
+    #     if self.select_points_status:
+    #         self.select_points_status = False
     #         self.select_points()
         
         
@@ -1846,8 +2030,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #     self.workerPicData.deleteLater
     #     self.threadPicData.deleteLater
     #     self.threadPicData = 0
-    #     if self.select_points_status == 1:
-    #         self.select_points_status = 0
+    #     if self.select_points_status:
+    #         self.select_points_status = False
     #         self.select_points()
                    
     # def browse_view_pic_data(self):        

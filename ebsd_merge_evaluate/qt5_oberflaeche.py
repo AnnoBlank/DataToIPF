@@ -1784,7 +1784,7 @@ class Ui_MainWindow(object):
         self.label_6.setText(_translate("MainWindow", "refer to EBSD \'CTF\' file"))
         self.mergeviewEBSD.setText(_translate("MainWindow", "View EBSD data"))
         self.DataMerge_CLSM.setWhatsThis(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
-        self.mergeloadCLSM1.setText(_translate("MainWindow", "File_CLSM1\n"
+        self.mergeloadCLSM1.setText(_translate("MainWindow", "CLSM file 1\n"
 "(experiment)"))
         self.label.setText(_translate("MainWindow", "Rotation"))
         self.mergeroationCLSM1.setItemText(0, _translate("MainWindow", "0°"))
@@ -1793,8 +1793,9 @@ class Ui_MainWindow(object):
         self.mergeroationCLSM1.setItemText(3, _translate("MainWindow", "270°"))
         self.CLSM1checkBox.setText(_translate("MainWindow", "Mirror"))
         self.mergeLevelingcheckBox.setText(_translate("MainWindow", "Leveling the data"))
-        self.mergeloadCLSM2.setText(_translate("MainWindow", "   File_CLSM2    \n"
-"(optional)"))
+        self.mergeloadCLSM2.setText(_translate("MainWindow", "CLSM file 2\n"
+                                               "(pre experiment/\n"
+                                               "optional)"))
         self.label_2.setText(_translate("MainWindow", "Rotation"))
         self.mergeroationCLSM2.setItemText(0, _translate("MainWindow", "0°"))
         self.mergeroationCLSM2.setItemText(1, _translate("MainWindow", "90°"))

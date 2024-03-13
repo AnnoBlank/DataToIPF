@@ -32,3 +32,35 @@ Zurücksetzen von Balken nach Rechteckssetzung
 Reminder Fenster zum 000_ abändern 
 
 Vorschlag 000_merge.dat -check 
+
+Bugfixes:
+Print When program hast started -check
+Select/Load Points fixen for second clicks
+
+Plot button 
+write resets when loading again
+Reactivate merge Logfile -check
+Logfile for evaluating
+Ganzzahldarstellung runden bis 2. Nachkommastelle -check
+Second window from carsten reactivate
+
+Mask usage in README
+
+Warning if CLSM has less resolution than EBSD
+
+Amounts of rectangles dynamical
+Text field 'Select several rectangles for '
+
+Save matching points direkt nach press button
+
+Save evaluated öffnen->save
+
+Caluculated IPF ausspeichern, einlesen
+
+Knopf re-evaluated zu rotation application
+
+rechtecke nivellieren, nicht leveling (optional plane substraction through linear interpolation of reference rectangles)
+
+Offset
+
+evaluation optimization results non interactive
