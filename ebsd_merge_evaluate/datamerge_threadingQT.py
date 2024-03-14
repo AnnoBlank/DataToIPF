@@ -303,33 +303,47 @@ class parent_merge(QObject):
     
     def render_confocal_data(self):
         CLSM_set = self.CLSM_render_set
+        
+        print(self.CLSM1_rendered)
+        print(self.CLSM2_rendered)
+        # self.CLSM1_rendered=True
+        if CLSM_set == 0:
+            if self.CLSM1_rendered:
+                if self.threading_true: self.finished.emit() 
+                return
+            file_name =  self.loadCLSM1line
+            checkBox = self.CLSM1checkBox
+
+        elif CLSM_set == 1:
+            if self.CLSM2_rendered:
+                if self.threading_true: self.finished.emit() 
+                return
+            file_name =  self.loadCLSM2line
+            checkBox = self.CLSM2checkBox
+        
         try:
-            if CLSM_set == 0:
-                file_name =  self.loadCLSM1line
-            elif CLSM_set == 1:
-                file_name =  self.loadCLSM2line
-            
             anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
             anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
             confocal_data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
             confocal_data = confocal_data[:, 1:]
-                        
+            
+            if checkBox == 2:
+                confocal_data = confocal_data[::-1, :]
+                            
+            rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
+                
             if CLSM_set == 0:
-                if self.CLSM1checkBox == 2:
-                    confocal_data = confocal_data[::-1, :]
-                rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
                 self.confocal_data_1 = np.rot90(confocal_data, k = rotation_data)
                 print('Render CLSM 1....................')
                 self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
+                self.CLSM1_rendered = True
                 
             elif CLSM_set == 1:
-                if self.CLSM2checkBox == 2:
-                    confocal_data = confocal_data[::-1, :]
-
-                rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
                 self.confocal_data_2 = np.rot90(confocal_data, k = rotation_data)
                 print('Render CLSM 2....................')
                 self.confocal_image_data_2 = self.render_confocal_image(self.confocal_data_2)
+                self.CLSM2_rendered = True
+
         except:
             if CLSM_set == 0:
                 print('CLSM 1 load failed')
@@ -341,32 +355,37 @@ class parent_merge(QObject):
         
     def load_confocal_data_diff(self):
         for CLSM_set in range(2):
-            try:
-                if CLSM_set == 0:
-                    # if self.CLSM1_rendered: continue;
-                    file_name =  self.loadCLSM2line
-                elif CLSM_set == 1:
-                    # if self.CLSM2_rendered: continue;
-                    file_name =  self.loadCLSM1line
+            if CLSM_set == 0:
+                if self.CLSM1_rendered:
+                    if self.threading_true: self.finished.emit() 
+                    return
+                file_name =  self.loadCLSM1line
+                checkBox = self.CLSM1checkBox
+
+            elif CLSM_set == 1:
+                if self.CLSM2_rendered:
+                    if self.threading_true: self.finished.emit() 
+                    return
+                file_name =  self.loadCLSM2line
+                checkBox = self.CLSM2checkBox
+
                 
+            try:
                 anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
                 anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
                 confocal_data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
                 confocal_data = confocal_data[:, 1:]
                 
+                if checkBox == 2:
+                    confocal_data = confocal_data[::-1, :]
+                
                 if CLSM_set == 0:
-                    if self.CLSM2checkBox == 2:
-                        confocal_data = confocal_data[::-1, :]
-    
                     rotation_data = self.deg_to_rot(int(self.mergeroationCLSM2))
                     self.confocal_data_1 = np.rot90(confocal_data, k = rotation_data)
                     print('Render CLSM 1....................')
                     self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
                     
                 elif CLSM_set == 1:
-                    if self.CLSM1checkBox == 2:
-                        confocal_data = confocal_data[::-1, :]
-    
                     rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
                     self.confocal_data_2 = np.rot90(confocal_data, k = rotation_data)
                     print('Render CLSM 2....................')
@@ -698,7 +717,7 @@ class mergedata(parent_merge):
         self.confocal_image =  self.render_confocal_image(data = self.confocal_data)
 
        
-    def load_confocal_data2(self, file_name=' ', rot=0,flip=0):
+    def load_confocal_data2(self, rot=0,flip=0):
             file_name = self.loadCLSM1line
             
             rot = self.deg_to_rot(int(self.mergeroationCLSM1))

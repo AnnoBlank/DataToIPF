@@ -388,6 +388,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 
                 self.thread.started.connect(self.worker.load_confocal_data_diff)
                 self.thread.start()
+                self.CLSM1_rendered = self.worker.CLSM1_rendered 
+                self.CLSM2_rendered = self.worker.CLSM2_rendered
+                
                 self.data_merge_clsm_single = False
                 self.select_point_for_diff = True
                 
@@ -625,6 +628,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.loadCLSM2line.setText(file_name)
         # self.loadPicDataline.setText('')
         if file_name:
+            self.render_clsm_data(CLSM_render_set = 1)
             self.mergeloadCLSM2.setStyleSheet(self.green)
         else:
             self.mergeloadCLSM2.setStyleSheet(self.color_optional)
@@ -810,9 +814,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.workerclsm.CLSM2checkBox = self.CLSM2checkBox.checkState()
         
         
+        # print(self.CLSM1_rendered)
+        # print(self.CLSM2_rendered)
+        self.workerclsm.CLSM1_rendered = self.CLSM1_rendered
+        self.workerclsm.CLSM2_rendered = self.CLSM2_rendered
+        
         self.threadclsm.started.connect(self.workerclsm.render_confocal_data)
         self.threadclsm.start()
-        
+
         
         self.mergeviewCLSM.setEnabled(False)
         self.autoSubstract.setEnabled(False)
@@ -825,6 +834,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.threadclsm.finished.connect(self.render_clsm_data_thread_finished)
     
     def render_clsm_data_thread_finished(self):
+        # print(self.workerclsm.CLSM1_rendered)
+        # print(self.workerclsm.CLSM2_rendered)
+        
+        self.CLSM1_rendered = self.workerclsm.CLSM1_rendered
+        self.CLSM2_rendered = self.workerclsm.CLSM2_rendered
+        
         if self.thread == 0:
             self.dataMergeProgressBar.setMaximum(100)
         
@@ -1571,7 +1586,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         if type(self.evaluate.mergeDataSet) == int:
             print('No data')
         else:
-            file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)')
+            file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)', save = True)
             
             print(file_name)
             if file_name[-4:] == '.dat':
