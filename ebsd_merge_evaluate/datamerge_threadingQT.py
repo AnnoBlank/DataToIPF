@@ -337,6 +337,8 @@ class parent_merge(QObject):
                 print('Render CLSM 1....................')
                 self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
                 self.CLSM1_rendered = True
+                # self.confocal_data = self.confocal_data_1
+                # self.confocal_image = self.confocal_image_data_1
                 
             elif CLSM_set == 1:
                 self.confocal_data_2 = np.rot90(confocal_data, k = rotation_data)
@@ -356,14 +358,18 @@ class parent_merge(QObject):
     def load_confocal_data_diff(self):
         for CLSM_set in range(2):
             if CLSM_set == 0:
-                if self.CLSM1_rendered:
+                if self.CLSM1_rendered or self.loadCLSM1line=='':
+                    if self.loadCLSM1line=='':
+                        print('CLSM 1 load failed: No data')
                     if self.threading_true: self.finished.emit() 
                     return
                 file_name =  self.loadCLSM1line
                 checkBox = self.CLSM1checkBox
 
             elif CLSM_set == 1:
-                if self.CLSM2_rendered:
+                if self.CLSM2_rendered or self.loadCLSM2line=='':
+                    if self.loadCLSM2line=='':
+                        print('CLSM 2 load failed: No data')
                     if self.threading_true: self.finished.emit() 
                     return
                 file_name =  self.loadCLSM2line
@@ -384,6 +390,8 @@ class parent_merge(QObject):
                     self.confocal_data_1 = np.rot90(confocal_data, k = rotation_data)
                     print('Render CLSM 1....................')
                     self.confocal_image_data_1 = self.render_confocal_image(self.confocal_data_1)
+                    # self.confocal_data = self.confocal_data_1
+                    # self.confocal_image = self.confocal_image_data_1
                     
                 elif CLSM_set == 1:
                     rotation_data = self.deg_to_rot(int(self.mergeroationCLSM1))
@@ -428,8 +436,6 @@ class mergeThread(parent_merge):
     #%%
     def load_confocal_data(self):
         try:
-
-            
             file_name = self.loadCLSM1line
             rot = self.deg_to_rot(int(self.mergeroationCLSM1))
                         
@@ -686,35 +692,35 @@ class mergedata(parent_merge):
 
     #%%
     
-    def load_confocal_data(self):
+    # def load_confocal_data(self):
 
-        file_name = self.loadCLSM1line
-        rot = self.deg_to_rot(int(self.mergeroationCLSM1))
+    #     file_name = self.loadCLSM1line
+    #     rot = self.deg_to_rot(int(self.mergeroationCLSM1))
          
-        print('Reading file: %s, please wait... this can take several minutes...'%file_name)
-        anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
-        anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
-        data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
-        data = data[:, 1:]
-        if self.CLSM1checkBox != 0:
-            data= np.flipud(data)
+    #     print('Reading file: %s, please wait... this can take several minutes...'%file_name)
+    #     anzahlrows =  np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=[5])
+    #     anzahlColums = np.loadtxt(file_name, delimiter=',', dtype='str', skiprows=25+len(anzahlrows)-1)
+    #     data = np.loadtxt(file_name, delimiter=',', skiprows=25, usecols=list(np.linspace(1,len(anzahlColums)-2,len(anzahlColums)-1,dtype=int)))
+    #     data = data[:, 1:]
+    #     if self.CLSM1checkBox != 0:
+    #         data= np.flipud(data)
             
-        if rot>0:
-            data= np.rot90(data,k=rot)
+    #     if rot>0:
+    #         data= np.rot90(data,k=rot)
             
-        self.confocal_data = data
-        if self.leveling!=0:
-            print('geometrical leveling..................................')    
-            m,n = data.shape
-            row,column = np.mgrid[:m,:n]
-            data2tmp = np.column_stack((row.ravel(),column.ravel(), data.ravel()))     
-            A = np.c_[data2tmp[:,0], data2tmp[:,1], np.ones(data2tmp.shape[0])]
-            C,_,_,_ = scipy.linalg.lstsq(A,data2tmp[:,2])
-            X,Y = np.meshgrid(np.linspace(0, n-1, n), np.linspace(0, m-1, m))
-            self.Zebene = C[1]*X + C[0]*Y 
-            self.confocal_data = self.confocal_data-self.Zebene
+    #     self.confocal_data = data
+    #     if self.leveling!=0:
+    #         print('geometrical leveling..................................')    
+    #         m,n = data.shape
+    #         row,column = np.mgrid[:m,:n]
+    #         data2tmp = np.column_stack((row.ravel(),column.ravel(), data.ravel()))     
+    #         A = np.c_[data2tmp[:,0], data2tmp[:,1], np.ones(data2tmp.shape[0])]
+    #         C,_,_,_ = scipy.linalg.lstsq(A,data2tmp[:,2])
+    #         X,Y = np.meshgrid(np.linspace(0, n-1, n), np.linspace(0, m-1, m))
+    #         self.Zebene = C[1]*X + C[0]*Y 
+    #         self.confocal_data = self.confocal_data-self.Zebene
         
-        self.confocal_image =  self.render_confocal_image(data = self.confocal_data)
+    #     self.confocal_image =  self.render_confocal_image(data = self.confocal_data)
 
        
     def load_confocal_data2(self, rot=0,flip=0):
