@@ -304,8 +304,8 @@ class parent_merge(QObject):
     def render_confocal_data(self):
         CLSM_set = self.CLSM_render_set
         
-        print(self.CLSM1_rendered)
-        print(self.CLSM2_rendered)
+        # print(self.CLSM1_rendered)
+        # print(self.CLSM2_rendered)
         # self.CLSM1_rendered=True
         if CLSM_set == 0:
             if self.CLSM1_rendered:

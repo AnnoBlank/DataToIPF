@@ -228,7 +228,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         super().__init__()
 
         # Initialize class attributes
-        self.select_points_status = False
+        # self.select_points_status = False
         self.data_merge_clsm_single = False
         self.data_merge_afm_single = 0 
         self.select_point_for_diff = False
@@ -433,7 +433,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data = self.worker.confocal_data 
         self.mergedata.confocal_image = self.worker.confocal_image
         self.clean_up_thread()
-        self.select_points_status = False
+        # self.select_points_status = False
 
         # if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
         #     self.select_points_status = False
@@ -472,7 +472,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
                     
         self.clean_up_thread()  
-        self.select_points_status = False    
+        # self.select_points_status = False    
         
     def load_clsm1_2_data_thread_finished(self):
         
@@ -496,7 +496,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState(), followup_selection = self.followup_selection)      
             
         self.clean_up_thread()  
-        self.select_points_status = False
+        # self.select_points_status = False
 
         # if not self.loadCLSM1line.text() and not self.loadCLSM2line.text():
         #     self.select_points_status = False
@@ -526,7 +526,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())      
             
         self.clean_up_thread() 
-        self.select_points_status = False
+        # self.select_points_status = False
                 
     def  load_auto_clsm_data_thread_finished_from_file(self):
         file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true=True)
@@ -549,7 +549,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
             
         self.clean_up_thread() 
-        self.select_points_status = False
+        # self.select_points_status = False
         
     def browse_button_master(self, cap, fil, save = False, tmp_true = False, name_suggestion = ''):
         if tmp_true:
@@ -899,29 +899,37 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
 
         self.dataMergeProgressBar.setMaximum(0)
         if self.ebsd_loaded:
-            if len(self.mergedata.confocal_data) == 2:
-                self.load_clsm_data_thread()
-                self.select_points_status = True
-            elif len(self.mergedata.confocal_data) != 2 :
-                if self.mergedata.P.shape == (2,):
-                    self.dataMergeProgressBar.setMaximum(100)
-                    if self.loading_points:
-                        self.mergedata.load_points_merge(self.loading_pointsFileName)
-                        self.read_in = True
-                        self.loading_points = False
-                    else:
-                        self.EBSD_CLSM_manual_selection=True
-                        self.mergedata.calibrate_confocal_and_EBSD_data()
-                    
-                    if self.mergedata.P.shape != (2,):
-                        self.mergeSelectPoints.setStyleSheet(self.green)
-                        self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
-                        self.mergeCalculateMerge.setEnabled(True)
-                    
-    
-                else:
-                    self.dataMergeProgressBar.setMaximum(100)
-                    self.select_points_window()
+            # if len(self.mergedata.confocal_data) == 2:
+            #     self.load_clsm_data_thread()
+            #     print(1)
+            #     # self.select_points_status = True
+            # elif len(self.mergedata.confocal_data) != 2:
+            self.load_clsm_data_thread()
+            print(2)
+            # if self.mergedata.P.shape == (2,):
+            #     print(3)
+            self.dataMergeProgressBar.setMaximum(100)
+            if self.loading_points:
+                print(5)
+                self.mergedata.load_points_merge(self.loading_pointsFileName)
+                self.read_in = True
+                # self.loading_points = False
+            else:
+                print(6)
+                self.EBSD_CLSM_manual_selection=True
+                self.mergedata.calibrate_confocal_and_EBSD_data()
+            
+            if self.mergedata.P.shape != (2,):
+                print(7)
+                self.mergeSelectPoints.setStyleSheet(self.green)
+                self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+                self.mergeCalculateMerge.setEnabled(True)
+            
+
+            # else:
+            print(4)
+            self.dataMergeProgressBar.setMaximum(100)
+            self.select_points_window()
                 
         else:
             print('No EBSD data')
@@ -945,6 +953,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.dialog.checkBox[i].setObjectName(f'checkBox{i}')
             self.dialog.checkBox[i].setText(f"P{i}")
             self.dialog.checkBox[i].setChecked(True)
+            self.dialog.checkBox[i].clicked.connect(self.check_all_boxes_select)
             
             self.dialog.labelEBSDcoordinate.append(QtWidgets.QLabel(self.dialog))
             self.dialog.labelEBSDcoordinate[i].setGeometry(QRect(150, 70+40*i, 180, 23))
@@ -961,9 +970,18 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.dialog.pushButton_2.clicked.connect(self.select_points_window_save)
         time.sleep(1)
         self.dialog.show()
+    
+    def check_all_boxes_select(self):
+        mask = np.zeros(len(self.dialog.checkBox))
+        for i in range(len(self.dialog.checkBox)):                
+            mask[i] = self.dialog.checkBox[i].checkState()
+        if all(mask):
+            self.dialog.pushButton.setEnabled(True)
+        else:
+            self.dialog.pushButton.setEnabled(False)
+
         
     def select_points_window_select(self):
-
         mask = np.zeros(len(self.dialog.checkBox))
         for i in range(len(self.dialog.checkBox)):                
             mask[i] = self.dialog.checkBox[i].checkState()
