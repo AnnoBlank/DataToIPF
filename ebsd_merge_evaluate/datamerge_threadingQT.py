@@ -579,11 +579,18 @@ class mergeThread(parent_merge):
         try:
             file_name= self.fileNameEBSD
             phase= self.phaseEBSD
+            factor = self.mergeReductionFactor
             print('Reading file: %s, please wait... this can take several minutes...'%file_name)
 
             with open(file_name,"r",errors="replace") as f:
                 CRSTdata = f.readlines()
             CRSTdata = CRSTdata[1:]
+            
+            #Read in reduction
+            # if factor != 1:
+            #     mask = np.array([i % factor == 0 for i in range(len(CRSTdata))])
+            # CRSTdata = CRSTdata[mask]
+            
             num = len(CRSTdata)
             X = -1*np.ones(num,)
             Y = -1*np.ones(num,)

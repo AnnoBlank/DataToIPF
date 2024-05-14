@@ -527,7 +527,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         return file_name
     
     def browse_button_EBSD(self):
-        file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
+        # file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
+        file_name = "C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf"
         self.loadEBSDline.setText(file_name)
         
         if file_name:
@@ -729,9 +730,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.EBSD_phase=phase
             print(f"Automated phase detection used phase = {phase}")
             self.workerEBSD.phaseEBSD=phase
+        
+        
+        
         self.workerEBSD.X_grid = 0
         self.workerEBSD.Y_grid = 0
         self.workerEBSD.Z_grid = 0
+        self.workerEBSD.mergeReductionFactor = 2
         self.threadEBSD.started.connect(self.workerEBSD.load_EBSD_data)
         self.threadEBSD.start()
         self.mergeviewEBSD.setEnabled(False)
@@ -1261,13 +1266,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def evaluate_load_data(self):
         self.evaluate.mergeDataSet = np.loadtxt(self.evaluate.dataPathFile)
         # k = self.evaluate_load_reduction_factor
-        k = 12
+        k = int(self.spinBoxMergedReduce.cleanText())
+        #k = 12
         if k != 1:
             mask = np.array([i % k == 0 for i in range(len(self.evaluate.mergeDataSet))])
         
         self.evaluate.mergeDataSet = self.evaluate.mergeDataSet[mask]
-        print(self.evaluate.mergeDataSet[mask].shape)
-        print(mask.shape)
+        # print(self.evaluate.mergeDataSet[mask].shape)
+        # print(mask.shape)
     
     def browse_plot_EBSD_Data(self):
         try:
