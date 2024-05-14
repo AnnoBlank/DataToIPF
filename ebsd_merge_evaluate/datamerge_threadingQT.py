@@ -1041,6 +1041,10 @@ class mergedata(parent_merge):
         ax1.set_title('EBSD data', fontsize=16)
         ax2.set_title('CLSM data', fontsize=16)
         
+        zoomer = self.zoom_factory(fig_point) # Zooming with event mouse wheel
+        reset_zoomer = self.zoom_reset(fig_point, ax1, ax2)
+
+        
         ax1.imshow(self.Z_grid, extent=(np.min(self.X), np.max(self.X), np.min(self.Y), np.max(self.Y)),  cmap=plt.get_cmap('tab20b'), aspect = np.max(self.Y)/np.max(self.X))
         if self.Pc.shape != (2,):
             ax1.plot(self.Pc[:,0],self.Pc[:,1],'ob', linewidth=3, markersize=12, alpha=1)
