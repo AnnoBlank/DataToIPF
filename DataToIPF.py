@@ -942,12 +942,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.dialog.labelCLSMcoordinate[i].setText(f'x ={int(self.mergedata.Pc[i,0])} / y= {int(self.mergedata.Pc[i,1])}')
             
         self.mergedata.calibrate_confocal_and_EBSD_data_image()
-        self.dialog.pushButton.clicked.connect(self.select_points_window_select)
+        self.dialog.pushButton.clicked.connect(self.select_points_window_save)
         self.dialog.pushButton_2.clicked.connect(self.select_points_window_save)
         time.sleep(1)
         self.dialog.show()
         
-    def select_points_window_select(self):
+    def select_points_window_save(self):
 
         mask = np.zeros(len(self.dialog.checkBox))
         for i in range(len(self.dialog.checkBox)):                
