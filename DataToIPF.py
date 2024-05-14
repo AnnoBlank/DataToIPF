@@ -1571,7 +1571,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         if type(self.evaluate.mergeDataSet) == int:
             print('No data')
         else:
-            file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)')
+            file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)', save = True)
             
             print(file_name)
             if file_name[-4:] == '.dat':
