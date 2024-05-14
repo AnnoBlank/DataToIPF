@@ -1275,7 +1275,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             QTimer.singleShot(500, self.evaluate_load_data_update)
         
     def evaluate_load_data(self):
-        self.evaluate.loadData()
+        self.evaluate.mergeDataSet = np.loadtxt(self.evaluate.dataPathFile)
+        # k = self.evaluate_load_reduction_factor
+        k = 12
+        if k != 1:
+            mask = np.array([i % k == 0 for i in range(len(self.evaluate.mergeDataSet))])
+        
+        self.evaluate.mergeDataSet = self.evaluate.mergeDataSet[mask]
     
     def browse_plot_EBSD_Data(self):
         try:

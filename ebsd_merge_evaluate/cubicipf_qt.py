@@ -34,8 +34,8 @@ class EBSDdataEvaluation():
         self.resolution  = 2
         self.heightIPF = [0]
     
-    def loadData(self):
-        self.mergeDataSet = np.loadtxt(self.dataPathFile)
+    # def loadData(self):
+    #     self.mergeDataSet = np.loadtxt(self.dataPathFile)
     
     def loadBCAData(self):
             fileName = self.dataPathFile
