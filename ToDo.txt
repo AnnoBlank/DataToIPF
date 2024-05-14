@@ -72,3 +72,5 @@ parameter festhalten, die übergeben werden
 3 ipfz abspeichern und einlesen
 4 IPFzs einfach zusammenkopieren? weclhe infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
 -> mergeprogramm schreiben
+
+Sommerakademie

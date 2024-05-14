@@ -102,5 +102,13 @@ points and replace them:
 3. Press 'Select points for merging' and uncheck to be deleted additional
 	bug point, then press 'Save'
 
+Data is saved as .dat file. The internal structure includes the X, Y coordinates 
+of the EBSD data, the heights from the CLSM data, the three Euler Angles, the 
+orientation in HKL, the X, Y coordinates in the CLSM system and some still 
+unknown data labeled ___datamerge_1_32.
+
+Datasets can be combined with combine_tool.py, which concatenates two datasets 
+and puts them next to each other with a gap of 20 in the X direction.  
+
 ----------------  Evaluating  -----------------
 
