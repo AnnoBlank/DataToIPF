@@ -527,8 +527,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         return file_name
     
     def browse_button_EBSD(self):
-        # file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
-        file_name = "C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf"
+        file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
+        # file_name = "C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf"
         self.loadEBSDline.setText(file_name)
         
         if file_name:

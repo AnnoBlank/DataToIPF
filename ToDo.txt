@@ -63,13 +63,7 @@ rechtecke nivellieren, nicht leveling (optional plane substraction through linea
 
 Offset
 
-parameter festhalten, die übergeben werden
-
-1 rechteck nachschauen
-2 Optimizing neuordnen
-3 ipfz abspeichern und einlesen
-4 IPFzs einfach zusammenkopieren? weclhe infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
--> mergeprogramm schreiben
+evaluation optimization results non interactive
 
 parameter festhalten, die übergeben werden
 
@@ -81,5 +75,11 @@ parameter festhalten, die übergeben werden
 
 Sommerakademie
 
-evaluation optimization results non interactive
+Rechteckssafe + Nivellieren
+
+Differenz EBSD
+
+EBSD reduziert einlesbar
+
+
 
