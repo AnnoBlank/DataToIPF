@@ -80,6 +80,7 @@ Rechteckssafe + Nivellieren
 Differenz EBSD
 
 EBSD reduziert einlesbar
+Gezielter Ebenenabzug
 
 
 

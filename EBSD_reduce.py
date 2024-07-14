@@ -9,10 +9,10 @@ import argparse, textwrap
 argParser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
 # input path (required)
-argParser.add_argument("-i", "--input", help="input path", required=True)
+argParser.add_argument("-i", "--input", help="input file name and its full path", required=True)
 
-# output path
-argParser.add_argument("-o", "--output", nargs='?', help="output file")
+# # output path
+# argParser.add_argument("-o", "--output", nargs='?', help="output file")
 
 # reduction Factor (required)
 argParser.add_argument("-f", "--reduction_factor", nargs='?', default=2, type=int, help=textwrap.dedent('''\

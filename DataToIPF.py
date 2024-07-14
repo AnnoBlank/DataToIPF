@@ -61,19 +61,21 @@ class SecondWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel(self)
         self.label.setGeometry(QRect(200, 20, 89, 23))
         self.label.setObjectName("EBSDcolumn")
+        self.label.setText( "EBSD")
+        
         self.label_2 = QtWidgets.QLabel(self)
         self.label_2.setGeometry(QRect(350, 20, 89, 23))
         self.label_2.setObjectName("CLSMcolumn")
-        self.label.setText( "EBSD")
         self.label_2.setText( "CLSM")
         
         self.pushButton = QtWidgets.QPushButton(self)
         self.pushButton.setGeometry(QRect(20, 580, 181, 41))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.setText("Select new points")
+        
         self.pushButton_2 = QtWidgets.QPushButton(self)
         self.pushButton_2.setGeometry(QRect(340, 580, 181, 41))
         self.pushButton_2.setObjectName("pushButton_2")
-        self.pushButton.setText("Select new points")
         self.pushButton_2.setText("Save")
 
 class popupWindow(QDialog):
