@@ -840,57 +840,35 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             print('No EBSD data')
 
     def select_points(self):
-        # print(not self.EBSD_CLSM_read_in)
-        # print(self.ebsd_loaded)
-        # print(len(self.mergedata.confocal_data) == 2)
-        # print(len(self.mergedata.confocal_data) != 2 )
-        # print(self.mergedata.P.shape == (2,))
-        # print(self.loading_points)
-        
-
-        self.dataMergeProgressBar.setMaximum(0)
         if self.ebsd_loaded:
-            # if len(self.mergedata.confocal_data) == 2:
-            #     self.load_clsm_data_thread()
-            #     print(1)
-            #     # self.select_points_status = True
-            # elif len(self.mergedata.confocal_data) != 2:
-            self.load_clsm_data_thread()
-            print(2)
-            # if self.mergedata.P.shape == (2,):
-            #     print(3)
-            self.dataMergeProgressBar.setMaximum(100)
-            if self.loading_points:
-                print(5)
-                self.mergedata.load_points_merge(self.loading_pointsFileName)
-                self.read_in = True
-                self.loading_points = False
-            elif not self.read_in:
-                print(6)
-                self.EBSD_CLSM_manual_selection=True
-                self.mergedata.calibrate_confocal_and_EBSD_data()
-            
-            if self.mergedata.P.shape != (2,):
-                print(7)
-                self.mergeSelectPoints.setStyleSheet(self.green)
-                self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
-                self.mergeCalculateMerge.setEnabled(True)
-            
-
-            # else:
-            print(4)
-            self.dataMergeProgressBar.setMaximum(100)
-            
-            # self.select_points_window()
-            
-            self.mergedata.calibrate_confocal_and_EBSD_data_image()
-            # self.mergedata.calibrate_confocal_and_EBSD_data()
-
-            
+            if len(self.mergedata.confocal_data) == 2:
+                self.load_clsm_data_thread()
+                self.select_points_status = 1
+            elif len(self.mergedata.confocal_data) != 2 :
+                if self.mergedata.P.shape == (2,):
+                    self.dataMergeProgressBar.setMaximum(100)
+                    if(self.loading_points==1):
+                        self.mergedata.load_points_merge(self.loading_pointsFileName)
+                        self.manual_selection = False
+                        self.read_in_selection = True
+                        self.loading_points=0
+                    else:
+                        self.mergedata.calibrate_confocal_and_EBSD_data()
+                    
+                    if self.mergedata.P.shape != (2,):
+                        self.mergeSelectPoints.setStyleSheet(self.green)
+                        self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+                        self.mergeCalculateMerge.setEnabled(True)
+                    
+    
+                else:
+                    self.dataMergeProgressBar.setMaximum(100)
+                    self.select_points_window()
                 
         else:
             print('No EBSD data')
             self.dataMergeProgressBar.setMaximum(100)
+
     
 
     def select_points_finished(self):
@@ -922,7 +900,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.dialog.labelEBSDcoordinate[i].setText(f'x ={int(self.mergedata.P[i,0])} / y= {int(self.mergedata.P[i,1])}')
             self.dialog.labelCLSMcoordinate[i].setText(f'x ={int(self.mergedata.Pc[i,0])} / y= {int(self.mergedata.Pc[i,1])}')
             
-        
+        self.mergedata.calibrate_confocal_and_EBSD_data_image()
         self.dialog.pushButton.clicked.connect(self.select_points_window_select)
         self.dialog.pushButton_2.clicked.connect(self.select_points_window_save)
         time.sleep(1)
@@ -942,11 +920,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         mask = np.zeros(len(self.dialog.checkBox))
         for i in range(len(self.dialog.checkBox)):                
             mask[i] = self.dialog.checkBox[i].checkState()
-        P_keep = self.mergedata.P[mask != 0]
-        Pc_keep = self.mergedata.Pc[mask != 0]
+        self.mergedata.P = self.mergedata.P[mask != 0]
+        self.mergedata.Pc = self.mergedata.Pc[mask != 0]
         plt.close('all')
         self.dialog.destroy()
-        self.mergedata.calibrate_confocal_and_EBSD_data(P_keep,Pc_keep)
         if self.mergedata.P.shape != (2,):
             self.mergeSelectPoints.setStyleSheet(self.green)
             self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
@@ -961,19 +938,19 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         mask = np.zeros(len(self.dialog.checkBox))
         for i in range(len(self.dialog.checkBox)):                
             mask[i] = self.dialog.checkBox[i].checkState()
-            
-        self.mergedata.P = self.mergedata.P[mask != 0]
-        self.mergedata.Pc = self.mergedata.Pc[mask != 0]
+        P_keep = self.mergedata.P[mask != 0]
+        Pc_keep = self.mergedata.Pc[mask != 0]
         plt.close('all')
         self.dialog.destroy()
+        self.mergedata.calibrate_confocal_and_EBSD_data(P_keep,Pc_keep)
         if self.mergedata.P.shape != (2,):
-            self.mergeSelectPoints.setStyleSheet(self.green)
-            self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
-            self.mergeCalculateMerge.setEnabled(True)
+                    self.mergeSelectPoints.setStyleSheet(self.green)
+                    self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+                    self.mergeCalculateMerge.setEnabled(True)
         else:
             self.mergeSelectPoints.setStyleSheet(self.color_click_on)
             self.mergeCalculateMerge.setStyleSheet(self.green)
-            self.mergeCalculateMerge.setEnabled(False)    
+            self.mergeCalculateMerge.setEnabled(False)
         
     def merge_calc(self):
         
