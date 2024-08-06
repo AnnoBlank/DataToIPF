@@ -1,0 +1,16 @@
+Die Hauptklasse bedient sich der GUI Definitionen aus *qt5_oberflaeche*. Wichtige Berechnungen werden in die Skripte *datamerge_threadingQT* (*merge*), *cubicipf_qt* (*ks*) und *ipfzXY* (*ipfzXY*) ausgelagert. Daas Arbeitsverzeichnis wird zwangsweise als das Skriptverzeichnis gewechselt, ws seine Gründe in Problemen mit Terminal-Ausführungen begründet ist.
+
+Zur Initialisierung werden eine Reihe von Zählervariablen definiert, was nicht loal gemacht wird, da diese global verwendet werden. Für schnellere Berechnung im Optimierungstool wird ein multiprocessing pool *self.pool* angelegt. Zur Beschreibung einer log-Datei wird eine entsprechende Datei im tmp-Ordner erstellt und ist über das Objekt *self.logfile_eval* anwählbar.
+
+Die Schaltflächen der GUI werden in der Funktion *tabMergeCLSM()* mit Funktionen in der Hauptklasse verknüpft. Diese Vernüpfungen werden in Grafik (WIP) dargestellt. Zu Beginn werden eine Reihe von Schltflächen deativiert, um Abstürzen vorzubeugen.
+
+
+*browse_view_CLSM12* (Augerufen durch die Schaltfläche Data Merging -> CLSM_Merge -> View CLSM data)
+Führt weiter zur Funktion *load_clsm_data_thread()*
+Falls beide CLSM-Textflächen gefüllt sind, wird die Funktion mit Parameter followup_selection = False ausgeführt.
+Falls nicht, wird die Standardfunktion ausgeführt, und sobald der Thread abgeschlossen ist, wird die Funktion *mergedata.view_confocal_data()* ausgeführt.
+Sinn der Fallunterscheidung: Die Funktion musste unter Umständen mehrfach ausgeführt werden. Die Unterscheidung hilft, indem nicht bei jedem Aufrufen der Funktion, insbesondere wenn die Schaltläche mehrfach gedrückt wird, nicht jedes mal die manuelle matching points Auswahl der Differenzmikroskopie ausgeführt wird. Der Parameter wird unverändert *load_clsm_data_thread()* und von da an *load_confocal_data_diff_plt()* übergeben. 
+
+
+*load_clsm_data_thread(self, followup_selection)*
+followup_selection, default = True: Boolean für das Ausführen der anschließenden matching points Auswahl

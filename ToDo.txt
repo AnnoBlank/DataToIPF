@@ -73,14 +73,18 @@ parameter festhalten, die übergeben werden
 4 IPFzs einfach zusammenkopieren? weclhe infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
 -> mergeprogramm schreiben
 
-Sommerakademie
+Sommerakademie - check
 
 Rechteckssafe + Nivellieren
 
 Differenz EBSD
 
-EBSD reduziert einlesbar
+EBSD reduziert einlesbar - check
 Gezielter Ebenenabzug
 
 
+Mean Data input/output distinguish -check
 
+IPF Legende
+
+Plot evaluate konstante Skalierung

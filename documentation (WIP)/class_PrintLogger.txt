@@ -1,0 +1,3 @@
+Die Klasse *PrintLogger* hat die Aufgabe, innerhalb der GUI für eine adäquate Anzeige der Programmabläufe zu sorgen. Sie wird als Objekt *self.PrintLogger* in der Hauptklasse initiiert und als Standardoutput gesetzt (*sys.stdout*), dieser wird um seine Funktionalitäten erweitert. Dafür ist die Hilfsfunktion *addTextprint_logger* vonnöten.
+
+Die Klasse bedient sich des Pakets *datetime*, sodass die Systemzeit dem Output vorangestellt werden kann. Nach der Intitialisierung kann das Format mit dem standartisierten *print()*-Befehl aufgerufen werden. Sie ist für den Programmablauf von untergeordneter Bedeutung.

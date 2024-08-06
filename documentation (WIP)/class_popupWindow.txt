@@ -1,0 +1,9 @@
+Die Klasse *popupWindow* dient dem Erzeugen kleiner Hinweisfenster, so zum Beispiel in der Speichererinnerung nach dem merging-Prozess (siehe Funktion *show_warning_safe()*). Sie kann flexibel mit der Syntax
+      
+self.popup = popupWindow('Your Message')
+self.popup.setGeometry(1200, 600, 240, 70)
+self.popup.show()
+
+aufgerufen und in ihrer Position und Größe angepasst werden.
+
+Sie ist für den Programmablauf von untergeordneter Bedeutung.

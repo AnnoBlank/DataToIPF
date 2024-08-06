@@ -333,19 +333,20 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.popup.show()
 
     def browse_view_CLSM12(self):
+        self.load_clsm_data_thread()#followup_selection = False
         if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
-            self.load_clsm_data_thread(followup_selection = False)
+            0
         elif (len(self.mergedata.confocal_data) == 2 or not self.data_merge_clsm_single):
-            self.load_clsm_data_thread()
             self.thread.finished.connect(self.mergedata.view_confocal_data)
 
         else:
             self.mergedata.view_confocal_data()           
         
-    def load_clsm_data_thread(self, followup_selection = True): 
-        self.followup_selection = followup_selection
+    def load_clsm_data_thread(self): #, followup_selection = True
+        #self.followup_selection = followup_selection
         
         self.dataMergeProgressBar.setMaximum(0)
+        
         self.worker = merge.mergeThread()
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -373,15 +374,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                     
                 
                 self.thread.started.connect(self.worker.load_confocal_data)
+                self.thread.finished.connect(self.load_clsm_data_thread_finished)
                 self.thread.start()
-                self.data_merge_clsm_single = True
                 
+                self.data_merge_clsm_single = True
                 self.mergeviewCLSM.setEnabled(False)
                 self.autoSubstract.setEnabled(False)
                 self.mergesubstractCLSM12.setEnabled(False)
                 self.loadsubstractCLSM12.setEnabled(False)
-                
-                self.thread.finished.connect(self.load_clsm_data_thread_finished)
                 
                 # self.mergeviewCLSM.setEnabled(False)
                 # self.autoSubstract.setEnabled(False)
@@ -389,7 +389,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 # self.loadsubstractCLSM12.setEnabled(False)
                 
                 # self.load_clsm_data_thread_finished()
-
 
 
             else:
@@ -402,6 +401,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 
                 self.thread.started.connect(self.worker.load_confocal_data_diff)
                 self.thread.start()
+                
                 self.CLSM1_rendered = self.worker.CLSM1_rendered 
                 self.CLSM2_rendered = self.worker.CLSM2_rendered
                 
@@ -466,19 +466,19 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.clean_up_thread()  
 
         
-    def load_clsm1_2_data_thread_finished(self):
-        self.check_CLSM_availability()
+    # def load_clsm1_2_data_thread_finished(self):
+    #     self.check_CLSM_availability()
             
-        self.dataMergeProgressBar.setMaximum(100)
+    #     self.dataMergeProgressBar.setMaximum(100)
         
-        self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
-        self.mergedata.confocal_data_2 = self.worker.confocal_data_2
-        self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
-        self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
+    #     self.mergedata.confocal_data_1 = self.worker.confocal_data_1 
+    #     self.mergedata.confocal_data_2 = self.worker.confocal_data_2
+    #     self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
+    #     self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
         
-        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState(), followup_selection = self.followup_selection)      
+    #     self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState(), followup_selection = self.followup_selection)      
             
-        self.clean_up_thread()  
+    #     self.clean_up_thread()  
 
         
     def  load_auto_clsm_data_thread_finished(self):
@@ -647,8 +647,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.simLoadMDpushButton.setEnabled(False)
             self.simLoadBCApushButton.setEnabled(False)
             self.simProgressBar.setMaximum(0)
+            
             self.threadCalculateIPFsim = threading.Thread(target=self.browse_sim_load_MD_thread, daemon=True)
             self.threadCalculateIPFsim.start()
+            
             QTimer.singleShot(500, self.threadCalculateIPFUpdateSim)
         else:
             print('No file selected for input of MD data')
@@ -663,8 +665,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.simLoadMDpushButton.setEnabled(False)
                 self.simLoadBCApushButton.setEnabled(False)
                 self.simProgressBar.setMaximum(0)
+                
                 self.threadCalculateIPFsimBCA = threading.Thread(target=self.browse_sim_load_BCA_thread, daemon=True)
                 self.threadCalculateIPFsimBCA.start()
+                
                 QTimer.singleShot(500, self.threadCalculateIPFUpdateSimBCA)
             else:
                 print('No file selected for input of BCA data')
@@ -739,12 +743,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.workerEBSD.Y_grid = 0
         self.workerEBSD.Z_grid = 0
         self.workerEBSD.mergeReductionFactor = 2
+        
         self.threadEBSD.started.connect(self.workerEBSD.load_EBSD_data)
+        self.threadEBSD.finished.connect(self.load_ebsd_data_thread_finished)
         self.threadEBSD.start()
+        
         self.mergeviewEBSD.setEnabled(False)
         self.phaseEBSD.setEnabled(False)
         self.dataMergeProgressBar.setMaximum(0)
-        self.threadEBSD.finished.connect(self.load_ebsd_data_thread_finished)
             
         
     def render_clsm_data(self, CLSM_render_set):
@@ -769,6 +775,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.workerCLSM2.CLSM2_rendered = self.CLSM2_rendered
         
         self.threadCLSM2.started.connect(self.workerCLSM2.render_confocal_data)
+        self.threadCLSM2.finished.connect(self.render_clsm_data_thread_finished)
         self.threadCLSM2.start()
         
         self.mergeviewCLSM.setEnabled(False)
@@ -779,7 +786,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.dataMergeProgressBar.setMaximum(0)
         
         self.CLSM_render_set = CLSM_render_set
-        self.threadCLSM2.finished.connect(self.render_clsm_data_thread_finished)
     
     def render_clsm_data_thread_finished(self):
         
@@ -955,9 +961,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def merge_calc(self):
         
         self.dataMergeProgressBar.setMaximum(0)
-        self.mergeCalculateMerge.setEnabled(False)
+        
         self.thread_merge_calc = threading.Thread(target=self.mergeCalcThread, daemon=True)
         self.thread_merge_calc.start()
+        
+        self.mergeCalculateMerge.setEnabled(False)
         QTimer.singleShot(500, self.mergeCalcUpdate)
     
     def mergeCalcUpdate(self):
@@ -1111,7 +1119,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.optLoadDataButton.clicked.connect(self.browseOptLoadDataButton)
         self.optReduceDataPushButton.clicked.connect(self.browseBinningData)
         self.optSelectDataPointspushButton.clicked.connect(self.optSelctPoint)
-        self.evaluateMergeDataButton.clicked.connect(self.browseMergeLeveldData)
+        self.evaluateMergeDataButton.clicked.connect(self.browseMergeLeveledData)
         self.evaluateRotationMatrixCalcbutton.clicked.connect(self.browseDataRotationMatrix)
         
      
@@ -1219,7 +1227,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.evaluateMeanEroisionlineEdit.setText( str(np.round(np.mean(self.evaluate.mergeDataSet[:,2]),4)))
             if self.evaluate.mergeDataSet.shape[1] == 11:
                 self.thread_evaluate_loadData_IPF = threading.Thread(target=self.evaluate.IPFYandIPFX, daemon=True)
-                self.thread_evaluate_loadData_IPF.start()            
+                self.thread_evaluate_loadData_IPF.start()    
+                
                 QTimer.singleShot(500, self.evaluate_load_data_IPF_update)
             else:
 
@@ -1240,6 +1249,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             
             self.thread_evaluate_loadData = threading.Thread(target=self.evaluate_load_data, daemon=True)
             self.thread_evaluate_loadData.start()
+            
             QTimer.singleShot(500, self.evaluate_load_data_update)
         
     def evaluate_load_data(self):
@@ -1268,8 +1278,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def browse_calculate_mean_erosion(self):
         global reference_level
         try:
-            self.evaluate.refereceHeight  = np.round(np.mean(self.evaluate.mergeDataSet[:,2]) - float(self.evaluateRefereceLevelLineEdit.text()),5)
-            self.evaluateMeanEroisionlineEdit.setText(str(self.evaluate.refereceHeight ))
+            self.evaluate.refereceHeight  = np.round(np.mean(self.evaluate.mergeDataSet[:,2]) - float(self.evaluateRefereceLevelLineEdit.text()),4)
+            self.evaluateMeanEroisionlineEdit.setText(str(np.round(np.mean(self.evaluate.mergeDataSet[:,2]),4)))
+            self.lineEditAfterLeveling.setText(str(self.evaluate.refereceHeight ))
         except:
             pass
         
@@ -1281,6 +1292,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.evaluateSaveDataButton.setStyleSheet(self.color_click_on)
             self.evaluate.relativeHeighttoAbsHeight()
             self.evaluateMeanEroisionlineEdit.setText( str(np.round(np.mean(self.evaluate.mergeDataSet[:,2]),4)))
+            self.lineEditAfterLeveling.setText(str(0 ))
             self.evaluateRefereceLevelLineEdit.setText(str(0 ))
         
     def levelingOxidData(self):
@@ -1318,8 +1330,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         else:
             self.evaluateApplyFilterButton.setEnabled(False)
             self.evaluateProgressBar.setMaximum(0)
+            
             self.thread_levelingDataFilters = threading.Thread(target=self.levelingDataFilters, daemon=True)
             self.thread_levelingDataFilters.start()
+            
             QTimer.singleShot(500, self.threadlevelingDataFiltersUpdate)
 
     def levelingDataFilters(self):
@@ -1350,7 +1364,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.evaluateSaveDataButton.setStyleSheet(self.color_click_on)
             
             
-    def browseMergeLeveldData(self):
+    def browseMergeLeveledData(self):
         file_name = self.browse_button_master('EBSD CTF File', 'Merged file .dat (*.dat)')
         
         self.evaluate.dataPathFiles = file_name
@@ -1363,6 +1377,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     
             self.mergedLeveldDataThread = threading.Thread(target=self.browse_merged_leveld_data, daemon=True)
             self.mergedLeveldDataThread.start()
+            
             QTimer.singleShot(500, self.mergedLeveldDataThreadUpdate)
 
             
@@ -1390,7 +1405,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 
                 if self.evaluate.mergeDataSet.shape[1] == 11:
                     self.thread_evaluate_loadData_IPF = threading.Thread(target=self.evaluate.IPFYandIPFX, daemon=True)
-                    self.thread_evaluate_loadData_IPF.start()            
+                    self.thread_evaluate_loadData_IPF.start()
+                    
                     QTimer.singleShot(500, self.evaluate_load_data_IPF_update)
                 else:
     
@@ -1406,8 +1422,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             
             self.evaluateCalculateIPFbutton.setEnabled(False)
             self.evaluateProgressBar.setMaximum(0)
+            
             self.threadCalculateIPF = threading.Thread(target=self.evaluate.medianDataXYZ, daemon=True)
             self.threadCalculateIPF.start()
+            
             QTimer.singleShot(500, self.threadCalculateIPFUpdate)
         except:
             print('Error')
@@ -1439,8 +1457,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.evaluateCalculateIPFbutton.setEnabled(False)
         self.evaluateRotationMatrixCalcbutton.setEnabled(False)
         self.evaluateProgressBar.setMaximum(0)
+        
         self.threadDataRotationMatrix = threading.Thread(target=self.dataRotationMatrix, daemon=True)
         self.threadDataRotationMatrix.start()
+        
         QTimer.singleShot(500, self.dataRotationMatrixUpdate) 
         
     def dataRotationMatrix(self):

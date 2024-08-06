@@ -1,0 +1,86 @@
+Automatisiertes Phasensuchen -check
+Punktpaare Abspreichern, Differenz und Merge -check
+Alle Punkte in eine Datei, nicht zwei, dafür längerer Header -halfcheck
+Filter Generierung
+Abspeichern einer Logdatei (merge) -check
+Info beim Schließen
+Punktverbesserungen save
+
+1.Readme als kurzer Abriss fertig
+2.Programmblöcke fertig beschreiben Programmnah
+3.Manual schreiben Anwendernah -> Index
+4.Powerpoint Folien als Walkthrough
+
+Dokumentation weiterschreiben, was geht, was nicht, genauere Handlungsanweisungen
+Maske zum Ausradieren, Bereiche zum Löschen weiß
+Maske mit in Logfile, Maske zum Nachbearbeiten ausgeben
+
+Differenzmikroskopie Punkte einlesen, Bild ausspeichern lassen -check
+
+EBSD Differenz, Maske
+
+Maske überprüfen, falsche überlagerung!
+
+View CLSM bei unloaded points macht manual select
+
+.pts zu .txt -check
+
+Rechtecke werden erst bei nächstem Punkt angezeigt
+
+Zurücksetzen von Balken nach Rechteckssetzung
+
+Reminder Fenster zum 000_ abändern 
+
+Vorschlag 000_merge.dat -check 
+
+Bugfixes:
+Print When program hast started -check
+Select/Load Points fixen for second clicks
+
+Plot button 
+write resets when loading again
+Reactivate merge Logfile -check
+Logfile for evaluating
+Ganzzahldarstellung runden bis 2. Nachkommastelle -check
+Second window from carsten reactivate
+
+Mask usage in README
+
+Warning if CLSM has less resolution than EBSD
+
+Amounts of rectangles dynamical
+Text field 'Select several rectangles for '
+
+Save matching points direkt nach press button
+
+Save evaluated öffnen->save
+
+Caluculated IPF ausspeichern, einlesen
+
+Knopf re-evaluated zu rotation application
+
+rechtecke nivellieren, nicht leveling (optional plane substraction through linear interpolation of reference rectangles)
+
+Offset
+
+evaluation optimization results non interactive
+
+parameter festhalten, die übergeben werden
+
+1 rechteck nachschauen
+2 Optimizing neuordnen
+3 ipfz abspeichern und einlesen
+4 IPFzs einfach zusammenkopieren? weclhe infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
+-> mergeprogramm schreiben
+
+Sommerakademie
+
+Rechteckssafe + Nivellieren
+
+Differenz EBSD
+
+EBSD reduziert einlesbar
+Gezielter Ebenenabzug
+
+
+

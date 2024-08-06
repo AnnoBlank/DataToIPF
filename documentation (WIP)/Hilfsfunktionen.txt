@@ -1,0 +1,42 @@
+Eine Reihe von Hilfsfunktionen wurden definiert und aus Bequemlichkeit vorerst dem Programm vorangestellt. Sie könnten auch nach der Initiierung der Hauptklasse definiert werden (WIP).
+
+
+*linear_fit(x, a, b)*
+x: Zweidimensionales Floatarray der Form (2, *Number of Coordinate Pairs*)
+a, b: Float
+
+Dient dem Ermittelns eines Höhenwerts aus zwei Inputwerten. Wird für die Erzeugung eines Ebenenfits verwendet (siehe Funktion *optimization_calculate()*)
+
+
+*most_frequent(lst)*
+lst: Liste aus Integern
+
+Dient dem Ermitteln des in der Liste am häufigsten vorkommenden Integers. Wird bei der Bestimmung der dominanten Phase des EBSD Datensatzes verwendet.
+
+
+*meanDataXYZ(mat, resolution, data_less)*
+mat: gemergetes Array der Struktur [X_EBSD, Y_EBSD, height_CLSM, Euler1, Euler2, Euler3, H, K, L, X_IPF, Y_IPF], Dimension (_Number of data points_, 11)
+resolution, default = 2: Relative Auflösung
+data_less, default = 10: Mindestanzahl von zusammengefassten Punkten
+
+Nutzt die Postionen im CLSM-System, bläht diese durch den resolution-Faktor auf und konvertiert sie in Integer. Dadurch entsteht eine Matrix der Dimension (~100, ~100, ), deren Einträge auch mit mehreren Datenpunkten belegt sein können. Das wird als 'Sortieren' bezeichnet (?). Die Datenpunkte werden anschließend gemittelt und im Fall der Höhen eine Standardabweichung ermittelt, somit wäre womöglich 'Kompression' ein passenderer Begriff. Sofern eine kritische Anzahl *data_less* unterschritten wird, wird diese komprimierte Koordinate übersprungen und als *loss* gezählt. 
+Letztendlich werden die komprimierten Werte ausgegeben: [X_CLSM, Y_CLSM, Z_CLSM, Z_Std, _Number of points compressed_, H, K, L]
+
+
+*def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall)*
+mat: Wie zuvor 
+__compare: 
+ipf_resolution: 
+prozentdata: 
+opt_points1_xy:
+optimisation_selct_point:
+tilt_angleall: Zwei Rotationswinkel (siehe *rotation_ebsd()*, dritter Winkel auf 0 gesetzt) vor Ablauf der Funktion
+
+Funktion größtenteils unbekannt, jedoch für Karstens Optimierungsalgorithmus essenziell. Wird in der Funktion *browse_optimisation_calculate()* aufgerufen, die durch die 'Calculate'-Schaltfläche im 'Optimising'-Reite des zweiten Tabs ausgelöst wird.
+Nutzt die vorherige Funktion *meanDataXYZ()* und übernimmt deren erste 4 Outputs als eigene. Verwendet die Funktion *linear_fit()* und nutzt diese, um ein Zusammenpassen der Ebene, generiert von den Messdaten, mit der von Vergleichswerten Generierten zu bewerten. Als Beurteilungskriteium wird die Variable *Zdfiivar*, deren Berechnung nicht vollends Nachvollzogen werden kann (WIP).
+Ausgaabe: [X_CLSM, Y_CLSM, Z_CLSM, Z_Std, tilt_angleall[1], tilt_angleall[0], state, _Z Difference Variance_, _Value of Fit_, _Std of Fit_]
+
+
+*rotation_ebsd(matrix, phi1, phi2, phi3)*
+matrix: Wie zuvor
+Anwendung einer Rotation (Winkel im Eulersystem, siehe Skript *ipfzXY* Funktion *rotation*) auf die HKL-Ausrichtungen und eines Transformation von X_CLSM und Y_CLSM (siehe Skript *ipfzXY* Funktion *poleA2*)
