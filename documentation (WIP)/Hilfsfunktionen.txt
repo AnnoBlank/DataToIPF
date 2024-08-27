@@ -15,7 +15,7 @@ Dient dem Ermitteln des in der Liste am häufigsten vorkommenden Integers. Wird 
 
 
 *meanDataXYZ(mat, resolution, data_less)*
-mat: gemergetes Array der Struktur [X_EBSD, Y_EBSD, height_CLSM, Euler1, Euler2, Euler3, H, K, L, X_IPF, Y_IPF], Dimension (_Number of data points_, 11)
+mat: gemergtes Array der Struktur [X_EBSD, Y_EBSD, height_CLSM, Euler1, Euler2, Euler3, H, K, L, X_IPF, Y_IPF], Dimension (_Number of data points_, 11)
 resolution, default = 2: Relative Auflösung
 data_less, default = 10: Mindestanzahl von zusammengefassten Punkten
 
@@ -23,7 +23,7 @@ Nutzt die Postionen im CLSM-System, bläht diese durch den resolution-Faktor auf
 Letztendlich werden die komprimierten Werte ausgegeben: [X_CLSM, Y_CLSM, Z_CLSM, Z_Std, _Number of points compressed_, H, K, L]
 
 
-*def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall)*
+*optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall)*
 mat: Wie zuvor 
 __compare: 
 ipf_resolution: 
@@ -34,7 +34,7 @@ tilt_angleall: Zwei Rotationswinkel (siehe *rotation_ebsd()*, dritter Winkel auf
 
 Funktion größtenteils unbekannt, jedoch für Karstens Optimierungsalgorithmus essenziell. Wird in der Funktion *browse_optimisation_calculate()* aufgerufen, die durch die 'Calculate'-Schaltfläche im 'Optimising'-Reite des zweiten Tabs ausgelöst wird.
 Nutzt die vorherige Funktion *meanDataXYZ()* und übernimmt deren erste 4 Outputs als eigene. Verwendet die Funktion *linear_fit()* und nutzt diese, um ein Zusammenpassen der Ebene, generiert von den Messdaten, mit der von Vergleichswerten Generierten zu bewerten. Als Beurteilungskriteium wird die Variable *Zdfiivar*, deren Berechnung nicht vollends Nachvollzogen werden kann (WIP).
-Ausgaabe: [X_CLSM, Y_CLSM, Z_CLSM, Z_Std, tilt_angleall[1], tilt_angleall[0], state, _Z Difference Variance_, _Value of Fit_, _Std of Fit_]
+Ausgabe: [X_CLSM, Y_CLSM, Z_CLSM, Z_Std, tilt_angleall[1], tilt_angleall[0], state, _Z Difference Variance_, _Value of Fit_, _Std of Fit_]
 
 
 *rotation_ebsd(matrix, phi1, phi2, phi3)*

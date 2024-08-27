@@ -1,16 +1,452 @@
-Die Hauptklasse bedient sich der GUI Definitionen aus *qt5_oberflaeche*. Wichtige Berechnungen werden in die Skripte *datamerge_threadingQT* (*merge*), *cubicipf_qt* (*ks*) und *ipfzXY* (*ipfzXY*) ausgelagert. Daas Arbeitsverzeichnis wird zwangsweise als das Skriptverzeichnis gewechselt, ws seine Gründe in Problemen mit Terminal-Ausführungen begründet ist.
-
-Zur Initialisierung werden eine Reihe von Zählervariablen definiert, was nicht loal gemacht wird, da diese global verwendet werden. Für schnellere Berechnung im Optimierungstool wird ein multiprocessing pool *self.pool* angelegt. Zur Beschreibung einer log-Datei wird eine entsprechende Datei im tmp-Ordner erstellt und ist über das Objekt *self.logfile_eval* anwählbar.
-
-Die Schaltflächen der GUI werden in der Funktion *tabMergeCLSM()* mit Funktionen in der Hauptklasse verknüpft. Diese Vernüpfungen werden in Grafik (WIP) dargestellt. Zu Beginn werden eine Reihe von Schltflächen deativiert, um Abstürzen vorzubeugen.
+Die Hauptklasse bedient sich der GUI Definitionen aus *qt5_oberflaeche*. Wichtige Berechnungen werden in die Skripte *datamerge_threadingQT* (*merge*), *cubicipf_qt* (*ks*) und *ipfzXY* (*ipfzXY*) ausgelagert. Das Arbeitsverzeichnis wird zwangsweise als das Skriptverzeichnis gewechselt, was seine Gründe in Problemen mit Terminal-Ausführungen begründet ist.
 
 
-*browse_view_CLSM12* (Augerufen durch die Schaltfläche Data Merging -> CLSM_Merge -> View CLSM data)
+Multithreading wird verwendet. Dies wird realisiert, indem eine Klasse als Objekt *self.worker* initialisiert wird. mit den Befehlen
+
+self.thread = QThread()
+self.worker.moveToThread(self.thread)
+self.worker.finished.connect(self.thread.quit)
+
+wird der worker einem thread zugeordnet und kann von da an für Multithreading verwendet werden. Das bedeutet, man kann über die Befehle
+
+self.thread.started.connect(self.worker._worker function_)
+self.thread.start()
+
+einen längeren Befehlssatz *self.worker._worker function_* ausführen. Der Programmcode läuft von diesem Punkt an weiter, die Funktion im Thread wird unabhängig im Hintergrund ausgeführt. Soll etwas erst NACH Beendigung des Threads ausgeführt werden, wie etwas Aufräumcodes oder Ausgaben, wird dies mit dem Befehl
+
+self.thread.finished.connect(self._followup function_)
+
+erreicht, der die Funktion *self._followup function_* ausführt. So kann die Funktionalität der GUI erhalten bleiben, obwohl im Hintergrund noch Berechnungen stattfinden.
+
+
+Zur Initialisierung werden eine Reihe von Zählervariablen definiert, was nicht lokal gemacht wird, da diese global verwendet werden. Für schnellere Berechnung im Optimierungstool wird ein multiprocessing pool *self.pool* angelegt. Zur Beschreibung einer log-Datei wird eine entsprechende Datei im tmp-Ordner erstellt und ist über das Objekt *self.logfile_eval* anwählbar.
+
+Die Schaltflächen der GUI werden in der Funktion *tabMergeCLSM()* mit Funktionen in der Hauptklasse verknüpft. Diese Vernüpfungen werden in Grafik (WIP) dargestellt. Zu Beginn werden eine Reihe von Schaltflächen deaktiviert, um Abstürzen vorzubeugen.
+
+
+*browse_view_CLSM12* [116]
 Führt weiter zur Funktion *load_clsm_data_thread()*
-Falls beide CLSM-Textflächen gefüllt sind, wird die Funktion mit Parameter followup_selection = False ausgeführt.
+Falls beide CLSM-Textflächen gefüllt sind, wird die Funktion mit Parameter followup_selection = False ausgeführt. (Aktuell inaktiv)
 Falls nicht, wird die Standardfunktion ausgeführt, und sobald der Thread abgeschlossen ist, wird die Funktion *mergedata.view_confocal_data()* ausgeführt.
 Sinn der Fallunterscheidung: Die Funktion musste unter Umständen mehrfach ausgeführt werden. Die Unterscheidung hilft, indem nicht bei jedem Aufrufen der Funktion, insbesondere wenn die Schaltläche mehrfach gedrückt wird, nicht jedes mal die manuelle matching points Auswahl der Differenzmikroskopie ausgeführt wird. Der Parameter wird unverändert *load_clsm_data_thread()* und von da an *load_confocal_data_diff_plt()* übergeben. 
 
 
 *load_clsm_data_thread(self, followup_selection)*
-followup_selection, default = True: Boolean für das Ausführen der anschließenden matching points Auswahl
+followup_selection, default = True: Boolean für das Ausführen der anschließenden matching points Auswahl (Aktuell inaktiv)
+
+Diese Funktion ist hauptsächlich für das Einlesen und Rendern der CLSM-Datensätze verantwortlich. Sie wird durch das Drücken der Differenzmikroskopie-Schaltflächen und durch die *select_points* Funktion aufgerufen. Zum schnelleren Berechnen wird ein Multithread aufgesetzt. Je nachdem, ob ein einfaches Rendern für die Höhendaten (wenn noch kein Datensatz eingelesen wurde und auch der Zähler, siehe unten, auf False steht) oder ein doppeltes für die Differenzmikroskopie (in den übrigen Fällen), wird entweder die Funktion *load_confocal_data* oder *load_confocal_data_diff* des *datamerge_thradingQT* Skriptes verwendet. Nach Abschluss des einfachen Renderns wird sowohl der *data_merge_clsm_single*-Zähler auf True gesetzt.
+
+Sofern zwei CLSM-Datensätze eingelesen wurden, sind nach der Ausführung die Differenzmikroskopie Schaltflächen aktiviert (*check_CLSM_availability*).
+
+
+*load_clsm_data_thread_finished(self)*
+Sofern die Leveling-Schaltfläche angeklickt war, wird eine affin angepasste Ebene dem Datensatz abgezogen. Diese wird angezeigt und abgespeichert, ebenso wie der Datensatz vor und nach dem Leveling. Die gewonnenen Daten werden dem Hauptskript übergeben und sind global verfügbar.
+
+
+    
+*plot_confocal(self, data, file_name)*
+Verwendet in *load_clsm_data_thread_finished*.
+Programmsequenz zum Darstellen und Abspeichern eines 2D Höhenplots findet mehrfach Anwendung und wurde hier ausgelagert.
+
+    
+*clean_up_thread(self)*
+Löscht Multithread um Arbeitsspeicher einzusparen.
+
+
+        
+*rendering_clsm1_2_data_thread_finished(self)*
+
+
+        
+*load_clsm1_2_data_thread_finished(self)*
+
+
+
+*load_auto_clsm_data_thread_finished(self)*
+
+
+
+                
+*load_auto_clsm_data_thread_finished_from_file(self)*
+
+
+        
+*browse_button_master(self, cap, fil, save = False, tmp_true = False, name_suggestion = '')*
+
+
+    
+*browse_button_EBSD(self)* [101]
+
+
+
+*browse_button_CLSM_1(self)* [111]
+
+   
+            
+*browse_button_CLSM_2(self)* [112]
+
+
+        
+*check_CLSM_availability(self)*
+Prüft, ob zwei gültige CLSM-Datensätze eingelesen sind. Falls das der Fall ist, werden die Differenzmikroskopie-Schaltflächen aktiviert, falls nicht, deaktiviert.
+
+
+        
+*browse_load_points_merge(self)* [103]
+
+
+    
+*browse_load_points_diff(self)*
+
+
+    
+*browse_load_pic_data(self)* [107]
+
+
+    
+*merge_save_data(self)* [106]
+
+
+
+*browse_sim_load_MD(self)* [301]
+
+
+
+*browse_sim_load_BCA(self)* [302]
+
+            
+            
+*browseOptLoadDataButton(self)* [231]
+
+            
+        
+*load_clsm1_2_data_thread_finished_finished(self)*
+
+        
+        
+*load_auto_clsm1_2_data_thread_finished_finished(self)*
+
+    
+    
+*load_auto_clsm_data_thread_finished_from_file_finished(self)*
+     
+    
+    
+*browse_CLSM_substract_norm(self)* [114]
+Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_clsm1_2_data_thread_finished_finished* weiter.
+
+
+*browse_CLSM_substract_auto(self)* [113]
+Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm1_2_data_thread_finished_finished* weiter.
+     
+        
+*browse_CLSM_substract_file(self)* [115]
+Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm_data_thread_finished_from_file_finished* weiter.
+        
+        
+*ebsd_phase_changed(self)*
+
+        
+        
+*load_ebsd_data(self)*
+
+            
+        
+*render_clsm_data(self, CLSM_render_set)*
+
+
+    
+*render_clsm_data_thread_finished(self)*
+
+        
+        
+*load_ebsd_data_thread_finished(self)*
+
+
+              
+*load_ebsd_view(self)* [102]
+
+
+
+*select_points(self)* [104]
+
+
+
+*select_points_finished(self)*
+
+    
+            
+*select_points_window(self)*
+
+
+    
+*check_all_boxes_select(self)*
+
+
+        
+*select_points_window_save(self)*
+
+
+
+*select_points_window_select(self)*
+
+
+
+*merge_calc(self)* [105]
+
+
+    
+*mergeCalcUpdate(self)*
+
+
+            
+*mergeCalcThread(self)*
+
+
+        
+*area_zero_level_button(self)* [117]
+
+
+            
+*area_zero_level(self)*
+
+
+        
+*browse_delete_pic_data(self)* [108]
+
+
+
+*delete_data_CLSM_checkbox(self)*
+
+
+ 
+*delete_data_EBSD_checkbox(self)*
+
+
+    
+*logNewHead(self, file, title)*
+
+      
+  
+*logNewLine(self, file, text)*
+
+
+    
+*createLogMergeSave(self)*
+
+        
+
+*tabEvaluateCLSM(self)* 
+
+        
+     
+*threadCalculateIPFUpdateSim(self)*
+
+
+  
+*browse_sim_load_MD_thread(self)*
+
+            
+         
+*threadCalculateIPFUpdateSimBCA(self)*
+
+
+        
+*browse_sim_load_BCA_thread(self)*
+
+
+
+*browseErosionDepthPlotsim(self)* [303]
+
+ 
+        
+*browsePlotHKLsim(self)* [304]
+Liest die HKL-inputs ein und gibt sie an die Funktion *plot_IPF_plane* des Skripts *cubicipf_qt* weiter. Diese führt den Plot aus. Die Plotgröße könnte zur besseren Darstellung angepasst werden (default = 20).
+
+        
+*evaluate_load_data_update(self)*
+
+
+
+*browse_evaluate_load_data(self)* [201]
+
+
+        
+*evaluate_load_data(self)*
+
+
+    
+*browse_plot_EBSD_Data(self)* [203]
+
+
+
+*browsePlotDataHeight(self)* [204]
+
+
+
+[205]
+Der Befehl *plt.close('all')* wird ausgeführt und schließt alle von *polyplot* erzeugten Fenster.
+
+
+[221]
+Der aktuelle Subtab wird zu 'Optimising gewechselt'.
+
+
+*browse_calculate_mean_erosion(self)*
+Diese Funktion stellt dar, was durch *leveling_data* geschehen wird. Sie wird aufgerufen, wenn das zu 'Reference level' gehörige Textfeld bearbeitet wird. Hierbei wird das 'Mean height of data' Feld auf die aus dem Datensatz ausgelesene mittlere Höhe gesetzt, 'Mean height of data after Leveling' auf die Differenz dieser Mittelung und der eingegebenen Zahl in 'Reference level'.
+
+        
+*leveling_data(self)* [211]
+Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gewünschten Wert zu heben. Dies wird mit der Funktion *relativeHeighttoAbsHeight()* des Skripts *quibicipf_qt* erreicht. Danach werden die Testfenster mit den Höhenwerten aktualisiert.
+
+
+        
+*levelingOxidData(self)* [212]
+
+        
+        
+*threadlevelingDataFiltersUpdate(self)*
+
+        
+        
+*browseLevelingDataFilters(self)* [213]
+
+
+
+*levelingDataFilters(self)*
+
+
+            
+*browseMergeLeveledData(self)* [202]
+
+
+            
+*browse_merged_leveld_data(self)*
+
+
+            
+*mergedLeveldDataThreadUpdate(self)*
+
+
+            
+*browseCalculateIPF(self)* [223]
+
+     
+
+*threadCalculateIPFUpdate(self)*
+
+
+            
+*saveIPFData(self)*
+           
+    
+
+*browseDataRotationMatrix(self)* [222]
+
+   
+     
+*dataRotationMatrix(self)*
+
+
+                     
+*dataRotationMatrixUpdate(self)*
+
+
+        
+*browse_sputter_yield_plot(self)* [224]
+
+
+        
+*browseErosionDepthPlot(self)* [225]
+
+
+            
+*browseSDplot(self)* [226]
+
+
+
+*browseCountsplot(self)* [227]
+
+
+
+*browsePlotHKL(self)* [228]
+
+
+        
+*evaluateSaveData(self)* [206]
+
+
+
+*browseBinningData(self)* [232]
+
+    
+    
+*browse_optimisation_calculate(self)* [234]
+
+
+        
+*optimisation_result(self)*
+
+
+
+*browse_optimisation_calculate_plot(self,path2,file_name)*        
+
+
+
+*plot_Angle1Angel2(self,Angle1,Angle2,Z,label='std(Z)', name='name',interpolation=1)*
+
+
+        
+*optSelctPoint(self)* [233]
+
+
+        
+*createLogEvalSave(self)*
+
+
+
+*appendLogEvalLeveling(self, logfile)*
+
+
+        
+*browse_button_AFM_1(self)* [121]
+
+        
+
+*browse_button_AFM_2(self)* [122]
+
+
+    
+*browse_pic_data(self)* [131]
+
+        
+
+*browse_merge_view_AFM(self)* [124]
+
+
+            
+*loadAFMdataThread(self)*     
+
+            
+
+*loadAFM12DataThreadFinished(self)*
+
+       
+     
+*loadAFMdataThreadFinished(self)*
+
+        
+        
+*loadPicDataThread(self)*     
+
+
+
+*PicDataThreadFinished(self)*
+
+         
+          
+*browse_view_pic_data(self)* [132]
+
+
+
+*browse_merge_substract_AFM_12(self)* [123]

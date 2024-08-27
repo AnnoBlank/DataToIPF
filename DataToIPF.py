@@ -378,10 +378,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.thread.start()
                 
                 self.data_merge_clsm_single = True
-                self.mergeviewCLSM.setEnabled(False)
-                self.autoSubstract.setEnabled(False)
-                self.mergesubstractCLSM12.setEnabled(False)
-                self.loadsubstractCLSM12.setEnabled(False)
+                # self.mergeviewCLSM.setEnabled(False)
+                # self.autoSubstract.setEnabled(False)
+                # self.mergesubstractCLSM12.setEnabled(False)
+                # self.loadsubstractCLSM12.setEnabled(False)
+                self.check_CLSM_availability()
                 
                 # self.mergeviewCLSM.setEnabled(False)
                 # self.autoSubstract.setEnabled(False)
@@ -408,11 +409,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.data_merge_clsm_single = False
                 self.select_point_for_diff = True
                 
-                self.mergeviewCLSM.setEnabled(False)
-                self.autoSubstract.setEnabled(False)
-                self.mergesubstractCLSM12.setEnabled(False)
-                self.loadsubstractCLSM12.setEnabled(False)
-
+                # self.mergeviewCLSM.setEnabled(False)
+                # self.autoSubstract.setEnabled(False)
+                # self.mergesubstractCLSM12.setEnabled(False)
+                # self.loadsubstractCLSM12.setEnabled(False)
+                self.check_CLSM_availability()
 
             else:
                 self.mergedata.view_confocal_data()
@@ -424,17 +425,24 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         self.check_CLSM_availability()
         
+        self.worker.leveling = self.mergeLevelingcheckBox.checkState()
+        
         if self.worker.leveling != 0:
-            plt.imshow(np.flipud(np.rot90(self.worker.Zebene, 1)))
-            plt.colorbar()
-            plt.savefig('tmp/000_Ebene.png')
-            plt.close()
+            # plt.imshow(np.flipud(np.rot90(self.worker.Zebene, 1)))
+            # plt.colorbar()
+            # plt.savefig('tmp/000_Ebene.png')
+            # plt.close()
+            
+            #self.plot_confocal(self.worker.Zebene, '000_Ebene.png')
 
             Zdiff = self.worker.confocal_data + self.worker.Zebene
             self.plot_confocal(Zdiff, '000_Confocal_before_leveling.png')
     
-            Z2 = self.worker.confocal_data
-            self.plot_confocal(Z2, '000_Confocal_leveled(now).png')
+            # Z2 = self.worker.confocal_data
+            # self.plot_confocal(Z2, '000_Confocal_leveled(now).png')
+            self.plot_confocal(self.worker.confocal_data, '000_Confocal_leveled(now).png')
+            
+            self.plot_confocal(self.worker.Zebene, '000_Ebene.png')
         print(8)
         self.mergedata.confocal_data = self.worker.confocal_data 
         self.mergedata.confocal_image = self.worker.confocal_image
@@ -446,6 +454,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         plt.clim([np.mean(data) + np.var(data), np.mean(data) - np.var(data)])
         plt.colorbar()
         plt.savefig(os.path.join('tmp', file_name))
+        # plt.waitforbuttonpress()
+        # plt.show(block=True)
         plt.close()
     
     def clean_up_thread(self):

@@ -70,7 +70,7 @@ parameter festhalten, die übergeben werden
 1 rechteck nachschauen
 2 Optimizing neuordnen
 3 ipfz abspeichern und einlesen
-4 IPFzs einfach zusammenkopieren? weclhe infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
+4 IPFzs einfach zusammenkopieren? welche infos aus den mergefiles wird benutzt? absolute x-y-koordinaten?
 -> mergeprogramm schreiben
 
 Sommerakademie - check
@@ -88,3 +88,10 @@ Mean Data input/output distinguish -check
 IPF Legende
 
 Plot evaluate konstante Skalierung
+
+Bestätigungstext nach ipfy
+
+Merging points clsm
+
+logfile
+
