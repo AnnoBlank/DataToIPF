@@ -945,18 +945,7 @@ mpl.use('Qt5Agg')                                       # setting the mpl backen
             self.evaluateSim.plot_inter_IPFz(self.evaluateSim.xIPFcoordinate, self.evaluateSim.yIPFcoordinate, erosion, float(2), 
                                cbarrange= [float(self.simErosionMinLineEdit.text()),float(self.simErosionMaxLineEdit.text())], 
                                Title='IPFz', cbarlabel=self.simErosionLabelLineEdit.text(), ticks = f, contourplot=contourplot1,savepath = saveipf)  
-        
-    def browsePlotHKLsim(self):
-        try:
-            h = float(self.simHlineEdit.text())
-            k = float(self.simKlineEdit.text())
-            l = float(self.simLlineEdit.text())
-            ipf = [h,k,l]
-            self.evaluateSim.plot_IPF_plane(IPF=ipf,testsize=20, 
-                                            text=self.simPlotHKLtextlineEdit.text(), 
-                                            yTextoffset =float(self.simPlotYoffsetLtextlineEdit.text())/100 )
-        except:
-            print('No figure avalible')
+
     
     def evaluate_load_data_IPF_update(self):
         if self.thread_evaluate_loadData_IPF.is_alive():

@@ -16,7 +16,7 @@ import multiprocessing as mp
 from PyQt5 import  QtWidgets
 from PyQt5.QtCore import QObject, QThread, QTimer, QRect, pyqtSignal, Qt
 from PyQt5.QtWidgets import QFileDialog, QMainWindow, QDialog, QLabel
-import ebsd_merge_evaluate.qt5_oberflaeche as qt5_oberflaeche # use this specific GUI
+import ebsd_merge_evaluate.qt5_oberflaeche_level as qt5_oberflaeche # use this specific GUI
 
 # importing data processing and visalization packages
 import numpy as np
@@ -24,6 +24,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.interpolate import griddata
+import scipy.linalg
 from functools import partial
 
 # importing self-written data processing packages
@@ -142,69 +143,133 @@ def meanDataXYZ(mat, resolution=2, data_less=10):
     
     return X, Y, Z, Zstd, Zcounts, h, k1, l
 
-def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall):
-    print(tilt_angleall)
+# def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall):
+#     print(tilt_angleall)
     
-    data_resulttmp = rotation_ebsd(mat, tilt_angleall[0], tilt_angleall[1], 0)
-    datacountmax = int(len(data_resulttmp) * prozentdata / 100)
-    state = 0
-    data_resulttmp2 = data_resulttmp.copy()
+#     data_resulttmp = rotation_ebsd(mat, tilt_angleall[0], tilt_angleall[1], 0)
+#     datacountmax = int(len(data_resulttmp) * prozentdata / 100)
+#     state = 0
+#     data_resulttmp2 = data_resulttmp.copy()
     
-    if optimisation_selct_point !=0 and len(opt_points1_xy) != 4:
-        mask = (
-        (data_resulttmp2[:, 9] < opt_points1_xy[1][0] * 150) &
-        (data_resulttmp2[:, 10] < opt_points1_xy[1][1] * 150) &
-        (data_resulttmp2[:, 9] > opt_points1_xy[0][0] * 150) &
-        (data_resulttmp2[:, 10] > opt_points1_xy[0][1] * 150)
-    )
-    data_resulttmp2 = data_resulttmp2[mask]
+#     if optimisation_selct_point !=0 and len(opt_points1_xy) != 4:
+#         mask = (
+#         (data_resulttmp2[:, 9] < opt_points1_xy[1][0] * 150) &
+#         (data_resulttmp2[:, 10] < opt_points1_xy[1][1] * 150) &
+#         (data_resulttmp2[:, 9] > opt_points1_xy[0][0] * 150) &
+#         (data_resulttmp2[:, 10] > opt_points1_xy[0][1] * 150)
+#     )
+#     data_resulttmp2 = data_resulttmp2[mask]
     
-    result = meanDataXYZ(data_resulttmp2, ipf_resolution, data_less = 3)
+#     result = meanDataXYZ(data_resulttmp2, ipf_resolution, data_less = 3)
     
-    if len(Zcompare) != 2:
-        Z = (result[2] - np.min(result[2])) / np.ptp(result[2])
-        Z2 = (Zcompare - np.min(Zcompare)) / np.ptp(Zcompare)
+#     if len(Zcompare) != 2:
+#         Z = (result[2] - np.min(result[2])) / np.ptp(result[2])
+#         Z2 = (Zcompare - np.min(Zcompare)) / np.ptp(Zcompare)
         
-        xi, yi = np.mgrid[0:1:200j, 0:1:200j]
+#         xi, yi = np.mgrid[0:1:200j, 0:1:200j]
         
-        zi = griddata((result[0] / (150 * ipf_resolution), result[1] / (150 * ipf_resolution)), Z, (xi, yi))
-        zi2 = griddata((Xcompare / (150 * ipf_resolution), Ycompare / (150 * ipf_resolution)), Z2, (xi, yi))
+#         zi = griddata((result[0] / (150 * ipf_resolution), result[1] / (150 * ipf_resolution)), Z, (xi, yi))
+#         zi2 = griddata((Xcompare / (150 * ipf_resolution), Ycompare / (150 * ipf_resolution)), Z2, (xi, yi))
 
-        mask = ~np.isnan(zi) & ~np.isnan(zi2)
-        zi, zi2 = zi[mask], zi2[mask]
+#         mask = ~np.isnan(zi) & ~np.isnan(zi2)
+#         zi, zi2 = zi[mask], zi2[mask]
         
-        data = np.vstack([zi, zi2 - np.mean(zi2) * 0.45])
+#         data = np.vstack([zi, zi2 - np.mean(zi2) * 0.45])
+#         null = np.zeros(len(zi))
+#         popt, pcov = curve_fit(linear_fit, data, null)
+        
+#         zi -= popt[1]
+#         zi2 *= 0.45
+#         zdiff = zi - zi2
+#         Zdfiivar = np.var(zdiff)
+#     else:
+#         Zdfiivar = 0
+#         popt = [0, 0]
+#         pcov = [[0, 0], [0, 0]]
+        
+#     result2 = np.asarray(result)
+#     result2 = result2[ :, result2[4].argsort()]
+    
+#     datacount = 0
+#     print('test')
+    
+#     for count in reversed(result2[4]):
+#         datacount += count
+#         if datacount > datacountmax:
+#             break
+#     if datacount < datacountmax:
+#         state = 1
+        
+#     result2 = result2[:, -count:]
+
+#     X, Y, Z, Zstd = result[0], result[1], result[2], result[3]
+    
+#     return [X, Y, Z, Zstd, tilt_angleall[1], tilt_angleall[0], state, Zdfiivar, popt[0], np.sqrt(pcov[0][0])]
+
+
+def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall):
+    # ipf_resolution, optimisation_selct_point , opt_points1_xy, prozentdata, tilt_angle,rotation_angle):
+    print(tilt_angleall)
+    Data_resulttmp = rotation_ebsd(mat, tilt_angleall[0],tilt_angleall[1],0)
+    datacountmax = int(len(Data_resulttmp)/100*prozentdata)
+    state = 0
+    Data_resulttmp2 = Data_resulttmp.copy()
+    if optimisation_selct_point !=0 and len(opt_points1_xy) != 4:
+            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,9] < opt_points1_xy[1][0]*150]
+            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,10] < opt_points1_xy[1][1]*150]
+            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,9] > opt_points1_xy[0][0]*150]
+            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,10] > opt_points1_xy[0][1]*150]
+    
+    result = meanDataXYZ(Data_resulttmp2, ipf_resolution, data_less = 3)
+    if len(Zcompare) != 2:
+        Z = np.subtract(result[2],np.min(result[2]))
+        Z = Z/np.max(Z)
+        Z2 = np.subtract(Zcompare,np.min(Zcompare))
+        Z2 = Z2/np.max(Z2)    
+        xi, yi = np.mgrid[0:1:200j,0:1:200j]
+        
+        zi = griddata((np.divide(result[0],150*ipf_resolution), np.divide(result[1],150*ipf_resolution)), Z, (xi, yi))
+        zi2 = griddata((np.divide(Xcompare,150*ipf_resolution), np.divide(Ycompare,150*ipf_resolution)), Z2, (xi, yi))
+#        zdiff = zi-zi2
+        mask = np.logical_not(np.isnan(zi))
+        zi = zi[mask]
+        zi2 = zi2[mask]
+        mask = np.logical_not(np.isnan(zi2))
+        zi = zi[mask]
+        zi2 = zi2[mask]
+        data = np.ones((2,len(zi)))
+        zi -= np.mean(zi)
+        zi2 -=  np.mean(zi2)
+        data[0,:] = zi
+        data[1,:] = zi2
         null = np.zeros(len(zi))
         popt, pcov = curve_fit(linear_fit, data, null)
-        
-        zi -= popt[1]
-        zi2 *= 0.45
-        zdiff = zi - zi2
+        zi = np.subtract(zi, popt[1])
+        zi2 = np.multiply(zi2,0.45)
+        zdiff = zi-zi2
         Zdfiivar = np.var(zdiff)
     else:
         Zdfiivar = 0
-        popt = [0, 0]
-        pcov = [[0, 0], [0, 0]]
-        
+        popt = [0,0]
+        pcov = [[0,0],[0,0]]
     result2 = np.asarray(result)
     result2 = result2[ :, result2[4].argsort()]
-    
+    i=0
     datacount = 0
     print('test')
-    
-    for count in reversed(result2[4]):
-        datacount += count
-        if datacount > datacountmax:
-            break
+    for i in range(0,len(result2[4])):
+          datacount += result2[4,-i]
+          if datacount > datacountmax:
+              break
     if datacount < datacountmax:
         state = 1
-        
-    result2 = result2[:, -count:]
+    result2 = result2[:,-i:]
+    X = result[0]
+    Y = result[1]
+    Z = result[2]
+    Zstd = result[3]
 
-    X, Y, Z, Zstd = result[0], result[1], result[2], result[3]
-    
-    return [X, Y, Z, Zstd, tilt_angleall[1], tilt_angleall[0], state, Zdfiivar, popt[0], np.sqrt(pcov[0][0])]
-
+    return([X,Y,Z,Zstd,tilt_angleall[1],tilt_angleall[0],state,Zdfiivar,popt[0], np.sqrt(pcov[0][0])])
 
 def rotation_ebsd(matrix, phi1, phi2, phi3):
 
@@ -300,11 +365,18 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergeSelectPoints.clicked.connect(self.select_points)
         self.mergeCalculateMerge.clicked.connect(self.merge_calc)
         
+        self.checkBoxParams.clicked.connect(self.checkBoxFileUncheck)
+        self.checkBoxFileInput.clicked.connect(self.checkBoxParamsUncheck)
+        self.calcByEdge.clicked.connect(self.calcSlopeByEdge)
+        self.LevelingMain.clicked.connect(self.levelingByParams)
+        
         self.mergeviewCLSM.setEnabled(False)
         self.autoSubstract.setEnabled(False)
         self.mergesubstractCLSM12.setEnabled(False)
         self.loadsubstractCLSM12.setEnabled(False)
         self.mergeCalculateMerge.setEnabled(False)
+        self.calcByEdge.setEnabled(False)
+        self.mergeSelectArea.setEnabled(False)
         
         self.mergeSelectArea.clicked.connect(self.area_zero_level_button)
         self.mergeDeleteDataPic.clicked.connect(self.browse_load_pic_data)
@@ -324,6 +396,67 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         self.mergeviewAFM.clicked.connect(self.show_warning_save)
     
+    def checkBoxFileUncheck(self):
+        if self.checkBoxParams.isChecked():
+            self.checkBoxFileInput.setChecked(False)
+        else:
+            self.checkBoxFileInput.setChecked(True)
+            
+    def checkBoxParamsUncheck(self):
+        if self.checkBoxFileInput.isChecked():
+            self.checkBoxParams.setChecked(False)
+        else:
+            self.checkBoxParams.setChecked(True)
+            
+    def calcSlopeByEdge(self):
+        data = self.mergedata.confocal_data
+        m,n = data.shape
+        row,column = np.mgrid[:m,:n]
+        data2tmp = np.column_stack((row.ravel(),column.ravel(), data.ravel()))     
+        
+        A = np.c_[data2tmp[:,0], data2tmp[:,1], np.ones(data2tmp.shape[0])]
+        C,_,_,_ = scipy.linalg.lstsq(A,data2tmp[:,2])
+                   
+        X,Y = np.meshgrid(np.linspace(0, n-1, n), np.linspace(0, m-1, m))
+        
+        #self.Zebene = C[1]*X + C[0]*Y 
+        self.XSlopeLine.setText(str(round(C[1], 10)))
+        self.YSlopeLine.setText(str(round(C[0], 10)))
+        #self.confocal_data = self.confocal_data-self.Zebene
+        
+    def area_zero_level_button(self):
+        self.mergeSave.setStyleSheet(self.color_click_on)
+        if len(self.mergedata.confocal_data) == 2:
+            self.load_clsm_data_thread()
+            self.thread.finished.connect(self.area_zero_level)
+        else:
+            try:
+                self.mergedata.data_zero_level(1)
+                print(f"Mean height of selected Area: {round(self.mergedata.Zerowerte_all[0], 10)}")
+                self.Offset00Line.setText(str(round(self.mergedata.Zerowerte_all[0], 10)))
+            except:
+                print('Error')    
+    
+    def levelingByParams(self):
+        data = self.mergedata.confocal_data
+        m,n = data.shape
+        X,Y = np.meshgrid(np.linspace(0, n-1, n), np.linspace(0, m-1, m))
+        
+        XSlope = float(self.XSlopeLine.text())
+        YSlope = float(self.YSlopeLine.text())
+        if self.Offset00Line.text():
+            Offset = float(self.Offset00Line.text())
+        else:
+            Offset = 0
+            
+        Zebene = XSlope*X + YSlope*Y 
+        self.mergedata.confocal_data = self.mergedata.confocal_data - Zebene - Offset
+        
+        # print(r"Data was leveled by Parameters/n X_Slope: {}\n Y_Slope: {}\n Offset: {}".format(XSlope, YSlope, Offset))
+        print(f"X_Slope: {round(XSlope, 10)}")
+        print(f"Y_Slope: {round(YSlope, 10)}")
+        print(f"Offset: {round(Offset, 10)}")
+        
     def show_warning_save(self): # Create Popup
         message = 'Please remember to save your temporary data in tmp folder.'
         print(message)
@@ -341,6 +474,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
 
         else:
             self.mergedata.view_confocal_data()           
+        self.calcByEdge.setEnabled(True)
+        self.mergeSelectArea.setEnabled(True)
         
     def load_clsm_data_thread(self): #, followup_selection = True
         #self.followup_selection = followup_selection
@@ -352,7 +487,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.worker.moveToThread(self.thread)
         self.worker.finished.connect(self.thread.quit)
 
-        self.worker.leveling = self.mergeLevelingcheckBox.checkState()
+        self.worker.leveling = 0 #self.mergeLevelingcheckBox.checkState()
         
         self.worker.mergeroationCLSM1 = self.mergeroationCLSM1.currentText()[:-1]
         self.worker.mergeroationCLSM2 = self.mergeroationCLSM2.currentText()[:-1]
@@ -420,12 +555,12 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.dataMergeProgressBar.setMaximum(100)
 
 
-    def  load_clsm_data_thread_finished(self):
+    def load_clsm_data_thread_finished(self):
         self.dataMergeProgressBar.setMaximum(100)
         
         self.check_CLSM_availability()
         
-        self.worker.leveling = self.mergeLevelingcheckBox.checkState()
+        self.worker.leveling  = 0# self.mergeLevelingcheckBox.checkState()
         
         if self.worker.leveling != 0:
             # plt.imshow(np.flipud(np.rot90(self.worker.Zebene, 1)))
@@ -501,7 +636,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
         
-        self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())      
+        self.mergedata.pattern_matching_auto(leveling = 0)# self.mergeLevelingcheckBox.checkState())      
             
         self.clean_up_thread() 
 
@@ -516,7 +651,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.confocal_data_2 = self.worker.confocal_data_2
         self.mergedata.confocal_image_data_1 =  self.worker.confocal_image_data_1
         self.mergedata.confocal_image_data_2 =  self.worker.confocal_image_data_2
-        self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
+        self.mergedata.confocal_diff_from_file(file_name, leveling = 0)# self.mergeLevelingcheckBox.checkState())      
             
         self.clean_up_thread() 
         # self.select_points_status = False
@@ -692,18 +827,18 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
     def load_clsm1_2_data_thread_finished_finished(self):
         self.rendering_clsm1_2_data_thread_finished()
-        self.mergedata.load_confocal_data_diff_plt(leveling = self.mergeLevelingcheckBox.checkState())
+        self.mergedata.load_confocal_data_diff_plt(leveling = 0)# self.mergeLevelingcheckBox.checkState())
         
         
     def load_auto_clsm1_2_data_thread_finished_finished(self):
         self.rendering_clsm1_2_data_thread_finished()
-        self.mergedata.pattern_matching_auto(leveling = self.mergeLevelingcheckBox.checkState())
+        self.mergedata.pattern_matching_auto(leveling = 0)# self.mergeLevelingcheckBox.checkState())
     
     
     def load_auto_clsm_data_thread_finished_from_file_finished(self):
         self.rendering_clsm1_2_data_thread_finished()
         file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true=True)
-        self.mergedata.confocal_diff_from_file(file_name, leveling = self.mergeLevelingcheckBox.checkState())      
+        self.mergedata.confocal_diff_from_file(file_name, leveling = 0)# self.mergeLevelingcheckBox.checkState())      
     
     
     def browse_CLSM_substract_norm(self):
@@ -1000,13 +1135,26 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.load_clsm_data_thread()
             self.thread.finished.connect(self.area_zero_level)
         else:
-            self.area_zero_level()
+            try:
+                self.mergedata.data_zero_level(1)
+                print(f"Mean height of selected Area: {self.mergedata.Zerowerte_all[0]}")
+                self.Offset00Line.setText(str(self.mergedata.Zerowerte_all[0]))
+            except:
+                print('Error')
             
-    def area_zero_level(self):
-        try:
-            self.mergedata.data_zero_level(int(self.mergeAmountSelect.text()))
-        except:
-            print('Error')
+    # def area_zero_level_button(self):
+    #     self.mergeSave.setStyleSheet(self.color_click_on)
+    #     if len(self.mergedata.confocal_data) == 2:
+    #         self.load_clsm_data_thread()
+    #         self.thread.finished.connect(self.area_zero_level)
+    #     else:
+    #         self.area_zero_level()
+            
+    # def area_zero_level(self):
+    #     try:
+    #         self.mergedata.data_zero_level(int(self.mergeAmountSelect.text()))
+    #     except:
+    #         print('Error')
        
 
         
@@ -1057,7 +1205,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         CLSM_file_2_rotation = self.mergeroationCLSM2.currentText()
         CLSM_file_2_mirrorCheck = bool(self.CLSM2checkBox.checkState())
         
-        CLSM_file_leveling = bool(self.mergeLevelingcheckBox.checkState())
+        CLSM_file_leveling = bool(0)#self.mergeLevelingcheckBox.checkState())
         
         
         
@@ -1617,9 +1765,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             tilt_angle_list =[]
             angle_list = []
             self.result_optimisation = []
-            self.progressbarindex = 0
+            self.progressbarmax = 0
             
-          
+            #Reads in data set for comparison, if applicable, else comparison to trivial values
             if self.optCompareDataCheckBox.checkState() != 0 and self.optLoadDataButtonLineEdit.text() != '':
                 file_name = self.optLoadDataButtonLineEdit.text()
                 print('Load Compare data')
@@ -1654,13 +1802,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                     stepsize_rotation = 90*float(self.optiStepSizeLineEdit.text())/tilt_angle
                 for rotation_angle in np.arange(float(self.optiRotAngleMinLineEdit.text()), 
                                                 float(self.optiRotAngleMaxLineEdit.text()), stepsize_rotation):
-                    self.progressbarindex +=1
-               
-            print(f'Start pool with {self.progressbarindex} processes')
+                    self.progressbarmax +=1
+            # print(f'Progress bar index = {self.progressbarmax}')
+            
+            print(f'Start pool with {self.progressbarmax} processes')
             for tilt_angle in np.arange(float(self.optiTiltAngleMinLineEdit.text()), 
                                         float(self.optiTiltAngleMaxLineEdit.text()) + float(self.optiStepSizeLineEdit.text()),
                                         float(self.optiStepSizeLineEdit.text())):
-                
+                # print(f'Calculation for tilt angle: {tilt_angle}')
                 if tilt_angle == 0:
                     stepsize_rotation = 360
                 else:
@@ -1669,18 +1818,31 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 
                 for rotation_angle in np.arange(float(self.optiRotAngleMinLineEdit.text()), 
                                                 float(self.optiRotAngleMaxLineEdit.text()), stepsize_rotation):
+                    # print(f'Calculation for rotation angle: {rotation_angle}')
                     rotation_angle_list.extend([rotation_angle])
                     tilt_angle_list.extend([tilt_angle])
                     angle_list.append([rotation_angle,tilt_angle])
-                    func2 = partial(optimization_calculate, data_resulttmp, Xcompare, Ycompare, Zcompare, float(self.optiResolutionIPFLineEdit.text()),
+                    self.func2 = partial(optimization_calculate, data_resulttmp, Xcompare, Ycompare, Zcompare, float(self.optiResolutionIPFLineEdit.text()),
                                        int(self.optUseDataEditLine.text()),self.evaluate.opt_points1_xy , self.optSelectedDataCheckBox.checkState(),  )
-                    self.pool.apply_async(func=func2, args=([rotation_angle,tilt_angle],), callback=self.result_optimisation.append)
+                    print(f'Controll message: Output of self.func2: {self.func2}')
+                    
+                    #result_optimisation_current = self.func2([rotation_angle,tilt_angle])
+                    if self.result_optimisation == None:
+                        self.result_optimisation = [self.func2([rotation_angle,tilt_angle])]
+                    else:
+                        self.pool.apply_async(func=self.func2, args=([rotation_angle,tilt_angle],), callback = self.result_optimisation.append)
+                    
+                    # print(f'Status result optimization: {self.result_optimisation}')
+                         
             QTimer.singleShot(2000, self.optimisation_result)
+            # print('Finished Calculation!')
+
         
     def optimisation_result(self):
         
-        if (len(self.result_optimisation) < self.progressbarindex):
-            self.optimizeProgressBar.setValue(int(len(self.result_optimisation)/self.progressbarindex *100)+1)
+        if (len(self.result_optimisation) < self.progressbarmax):
+            self.optimizeProgressBar.setValue(int(len(self.result_optimisation)/self.progressbarmax *100)+1)
+            print(f'Still working! Progress: {int(len(self.result_optimisation)/self.progressbarmax *100)}')
             QTimer.singleShot(2000, self.optimisation_result)
         else:
             Angle1 = []
