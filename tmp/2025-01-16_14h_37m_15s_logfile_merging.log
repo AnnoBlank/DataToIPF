@@ -1,0 +1,12 @@
+_Header_
+Logfile created: 2025-01-16 at 14:37:15
+
+-------------------------------- New Data Merging --------------------------------
+
+Load_EBSD: EBSD_data.ctf
+ - Full EBSD filepath: C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf
+ - Automated detection found phase: 1
+
+Load_CLSM_1: CLSM_data_1.csv
+ - Full CLSM_1 filepath: C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/CLSM_data_1.csv
+

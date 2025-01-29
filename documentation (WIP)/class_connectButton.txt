@@ -24,6 +24,48 @@ Zur Initialisierung werden eine Reihe von Zählervariablen definiert, was nicht 
 Die Schaltflächen der GUI werden in der Funktion *tabMergeCLSM()* mit Funktionen in der Hauptklasse verknüpft. Diese Vernüpfungen werden in Grafik (WIP) dargestellt. Zu Beginn werden eine Reihe von Schaltflächen deaktiviert, um Abstürzen vorzubeugen.
 
 
+
+*addTextprint_logger(self, new_text)*
+Fügt einem unbekannten Objekt *self.textBrowser* den Text des neu überschriebenen print()-Befehls an.
+        
+        
+*tabMergeCLSM(self)* 
+Beinhaltet die Interaktivität des Tags Evaluating der GUI.
+    
+    
+*checkBoxFileUncheck(self)*
+Updates the dual checkbox variables in the program.
+
+            
+*checkBoxParamsUncheck(self)*
+Updates the dual checkbox variables in the program.
+
+
+*calcSlopeByEdge(self)* [118]
+Führt eine affine Anpassung einer Hintergrundebene an den Datensatz *self.mergedata.confocal_data* aus. Die Steigungen der Ebene in die x-/y-Dimension wird in ein Textfeld eingetragen und dienen dem späteren Nivellieren.
+Kopiert von der Funktion *load_confocal_data* der Klasse *mergedata* des Moduls *datamerge_threadingQT* und auf wesentliche Funktionalität gekürzt.
+
+
+*area_zero_level_button(self)* [117]
+Ermöglicht die berechnung eines Höhenoffsets mithilfe einer Rechtecksauswahl. Mittlelt über das eingegrenzte Feld und trägt den Mittelwert in das korrespondierende Feld ein.          
+                 
+                 
+*levelingMainBrowse(self)* [11A]
+Führt, je nach angeklickter Checkbox weiter zu *levelingByParams* oder *levelingByFile*.
+
+    
+*levelingByFile(self)*
+Liest die ausgewählte csv-Datei ein und und zieht sie vom CLSM-Datensatz ab. Eine Bestätigung mit der verwendeteten Datei wird ausgegeben.
+
+        
+*browseLevelingFile(self)* [119]
+Erlaubt das Auswählen einer csv-Datei mit 2-dimensionalen Höhenprofil zum gezielten und reproduzierbaren Leveln. 
+
+
+*levelingByParams(self)
+Erzeugt eine Hintergrundebene auf Basis der drei angegebenen Parametern und zieht diese vom *self.mergedata.confocal_data*-Datensatz ab.
+
+
 *browse_view_CLSM12* [116]
 Führt weiter zur Funktion *load_clsm_data_thread()*
 Falls beide CLSM-Textflächen gefüllt sind, wird die Funktion mit Parameter followup_selection = False ausgeführt. (Aktuell inaktiv)
@@ -43,7 +85,6 @@ Sofern zwei CLSM-Datensätze eingelesen wurden, sind nach der Ausführung die Di
 Sofern die Leveling-Schaltfläche angeklickt war, wird eine affin angepasste Ebene dem Datensatz abgezogen. Diese wird angezeigt und abgespeichert, ebenso wie der Datensatz vor und nach dem Leveling. Die gewonnenen Daten werden dem Hauptskript übergeben und sind global verfügbar.
 
 
-    
 *plot_confocal(self, data, file_name)*
 Verwendet in *load_clsm_data_thread_finished*.
 Programmsequenz zum Darstellen und Abspeichern eines 2D Höhenplots findet mehrfach Anwendung und wurde hier ausgelagert.
@@ -52,72 +93,83 @@ Programmsequenz zum Darstellen und Abspeichern eines 2D Höhenplots findet mehrf
 *clean_up_thread(self)*
 Löscht Multithread um Arbeitsspeicher einzusparen.
 
-
         
 *rendering_clsm1_2_data_thread_finished(self)*
-
+Wird nach Abschluss der *_clsm1_2_data_thread_finished_finished*-Funktionen aufgerufen. Schaltet die CLSM-Schaltflächen frei, falls möglich und löscht den Thread.
 
         
 *load_clsm1_2_data_thread_finished(self)*
-
+Momentan inaktiv.
 
 
 *load_auto_clsm_data_thread_finished(self)*
-
-
+Schaltet die CLSM-Schaltflächen frei, falls möglich.
+Speichert die Ergebnisse der vorangegangenen Funktion global ab und führt weiter auf die Funktion *pattern_matching_auto* der Klasse *mergedata* des Moduls *datamerge_threadingQT*.
+Löscht den Thread nach Abschluss.
 
                 
 *load_auto_clsm_data_thread_finished_from_file(self)*
-
+Liest den Dateinamen einer Textdatei ein, die CLSM-CLSM Match-Punkte verknüpft.
+Schaltet die CLSM-Schaltflächen frei, falls möglich.
+Speichert die Ergebnisse der vorangegangenen Funktion global ab und führt weiter auf die Funktion *pattern_matching_auto* der Klasse *mergedata* des Moduls *datamerge_threadingQT*.
+Löscht den Thread nach Abschluss.
 
         
 *browse_button_master(self, cap, fil, save = False, tmp_true = False, name_suggestion = '')*
-
+Eine generalisierte Funktion zum Einlesen von Dateinamen mit Pfad. Öffnet standardmäßig den tmp-Ordner. Deckt das Öffnen und Abspeichern von Dateien ab und kann mit dem bool-Parameter 'save' geändert werden.
 
     
 *browse_button_EBSD(self)* [101]
-
+Einlesen einer CFT-Datei. Falls erfolgreich, Weiterleitung zu *load_ebsd_data*, sonst Fehlermeldung.
 
 
 *browse_button_CLSM_1(self)* [111]
-
+Liest den CSV-Dateinamen einer CLSM-Höhendatei ein. 
+Auskommentiert: Ruft anschließend die Funktion *self.render_clsm_data* mit dem Parameter 'CLSM_render_set = 0' auf.
    
             
 *browse_button_CLSM_2(self)* [112]
-
+Liest den CSV-Dateinamen einer CLSM-Höhendatei ein. 
+Auskommentiert: Ruft anschließend die Funktion *self.render_clsm_data* mit dem Parameter 'CLSM_render_set = 1' auf.
 
         
 *check_CLSM_availability(self)*
 Prüft, ob zwei gültige CLSM-Datensätze eingelesen sind. Falls das der Fall ist, werden die Differenzmikroskopie-Schaltflächen aktiviert, falls nicht, deaktiviert.
 
 
-        
 *browse_load_points_merge(self)* [103]
-
+Liest den Dateinamen einer Textdatei ein, die EBSD-CLSM Match-Punkte verknüpft. Speichert den Dateipfad global in *self.loading_pointsFileName* und leitet weiter zur Funktion *self.select_points*.
 
     
 *browse_load_points_diff(self)*
-
+Momentan inaktiv.
+Liest den Dateinamen einer Textdatei ein, die CLSM-CLSM Match-Punkte verknüpft.
+Leitet weiter auf die Funktion *select_points_diff*.
 
     
 *browse_load_pic_data(self)* [107]
-
+Liest den Dateinamen einer Bilddateidatei ein. Erlaubte Formate sind hierbei *.bmp *.jpeg *.jpg *.tif und *.tiff. Gibt den Dateipfad weiter an die Funktion *loadPicdataForDelete* der Klasse *mergedata* des Moduls *datamerge_threadingQT* weiter.
 
     
 *merge_save_data(self)* [106]
-
+Lässt den Dateinamen und Pfad zum Abspeichern der gemergten *.dat-Datei wählen. Falls zusätzlich eine affine Ebene abgezogen wurde, wird diese ebenso abgespeichert.
 
 
 *browse_sim_load_MD(self)* [301]
-
+Liest den Dateinamen einer *.dat-Datei ein, die MolecularDynamics-Simulationsergebnisse beinhaltet.
+Führt die Funktion *browse_sim_load_MD_thread* in einem neuen Thread aus.
+Überprüft ob die Funktion noch läuft mit der Funktion *threadCalculateIPFUpdateSim*.
 
 
 *browse_sim_load_BCA(self)* [302]
-
+Liest den Dateinamen einer *.yield-Datei ein, die Binary Collision Approximation-Simulationsergebnisse beinhaltet.
+Führt die Funktion *browse_sim_load_BCA_thread* in einem neuen Thread aus.
+Überprüft ob die Funktion noch läuft mit der Funktion *threadCalculateIPFUpdateSimBCA*.
             
             
 *browseOptLoadDataButton(self)* [231]
-
+Keine tatsächliche innere Funktionalität gefunden!
+Liest den Dateinamen einer *.dat-Datei ein, die einen gemergten IPF-Datensatz beinhaltet, und schreibt diesen in das korrespondierende Textfeld.
             
         
 *load_clsm1_2_data_thread_finished_finished(self)*
@@ -131,13 +183,13 @@ Prüft, ob zwei gültige CLSM-Datensätze eingelesen sind. Falls das der Fall is
 *load_auto_clsm_data_thread_finished_from_file_finished(self)*
      
     
-    
+*browse_CLSM_substract_auto(self)* [113]
+Momentan inaktiv.
+Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm1_2_data_thread_finished_finished* weiter.
+
+
 *browse_CLSM_substract_norm(self)* [114]
 Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_clsm1_2_data_thread_finished_finished* weiter.
-
-
-*browse_CLSM_substract_auto(self)* [113]
-Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm1_2_data_thread_finished_finished* weiter.
      
         
 *browse_CLSM_substract_file(self)* [115]
@@ -145,13 +197,13 @@ Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm_data_
         
         
 *ebsd_phase_changed(self)*
-
+Sofern eine Veränderung im Textfeld für die EBSD-Phase stattgefunden hat, wird die EBSD-Datei mit der neuen Phase eingelesen und die Abänderung im Logfile festgehalten.
         
         
 *load_ebsd_data(self)*
+Findet zuerst die am häufigsten auftretende Phase der CFT-Datei heraus, falls keine abweichend manuell eingetragen wurde und führt dann parallel in einem Thread die Funktion *load_EBSD_data* der Klasse *mergeThread* des Skripts *datamerge_threadingQT* aus. Nach Beendigung folgt die Funktion *load_ebsd_data_thread_finished*, deren Hauptaufgabe es ist, die gewonnenen Daten in das Hauptskript einzulesen, bevor der Thread gelöscht wird. 
 
             
-        
 *render_clsm_data(self, CLSM_render_set)*
 
 
@@ -161,83 +213,91 @@ Führt *load_clsm_data_thread* aus und leitet zur Funktion *load_auto_clsm_data_
         
         
 *load_ebsd_data_thread_finished(self)*
-
+Lädt die verarbeiteten EBSD-Daten in das Hauptskript, löscht den ursprünglichen Thread und schaltet weitere Schaltflächen frei. 
 
               
 *load_ebsd_view(self)* [102]
-
+Führt die Funktion *view_EBSD_data* der Klasse *mergedata* des Moduls *datamerge_threadingQT* aus. 
 
 
 *select_points(self)* [104]
+Zentrale Merging Funktion. Wird an vielen Stellen des Programs aufgerufen, beinhaltet deswegen viele Fallunterscheidungen.
+Überprüft zuerst, ob ein EBSD Datensatz eingelesen wurde (*self.ebsd_loaded*, wird durch *browse_button_EBSD* geupdated).
+Überprüft anschließend, ob berets CLSM Daten eingelesen und gerendert wurden (*load_clsm_data_thread* und *load_clsm_data_thread_finished*). Falls nicht, wird *load_clsm_data_thread* ausgeführt.
+Falls bereits Daten vorliegen, wird überprüft, ob matching points zwischen CLSM und EBSD vorliegen (*self.mergedata.P*).
+Falls nicht, wird entweder versucht, Punkte aus einer .txt-Datei auszulesen, oder es wird das manuelle matching Auswahlfenster geöffnet *self.mergedata.calibrate_confocal_and_EBSD_data()*.
 
+Falls bereits Daten vorliegen, wird *self.select_points_window()* ausgeführt, um Punkte bei erneuter Auswahl zu löschen und neu einzulesen.
 
 
 *select_points_finished(self)*
+Momentan inaktiv.
 
     
             
 *select_points_window(self)*
+Öffnet ein Auswahlfenster mit den bereits vorhandenen matching points.
+Erlaubt das löschen einzelner Punkte (danach ist nur noch 'Save' auswählbar, Prävention von Bugs)
+oder das neue Einlesen von Punkten ('Select new points'). Zur Visualisierung der bereits vorhandenen matching points wird *self.mergedata.calibrate_confocal_and_EBSD_data_image()* ausgeführt.
 
+'Save': *self.select_points_window_save*
+'Select new points': *self.select_points_window_select*
 
     
 *check_all_boxes_select(self)*
-
+Hilfsfunktion für *select_points_window*, überprüft, ob alles Punkte weiterhin übernommen werden oder manche Punkte abgewählt werden sollen.
 
         
 *select_points_window_save(self)*
-
+Löscht abgewählte Punkte aus dem matching pionts Datensatz. Falls manche Punkte abgewählt sind, wird 'Select new points' inaktiv (Bugfix).
 
 
 *select_points_window_select(self)*
-
+Übergibt alle bereits existierenden Punkte der Funtkion *self.mergedata.calibrate_confocal_and_EBSD_data*, die zusätzliche Punktauswahl ermöglicht
 
 
 *merge_calc(self)* [105]
-
+Führt die Funktion *mergeCalcThread* in einem neuen Thread aus.
+Überprüft ob die Funktion noch läuft mit der Funktion *mergeCalcUpdate*.
+Erfolgreich abgeschlossen erfolgt ein Logfile-Eintrag.
 
     
 *mergeCalcUpdate(self)*
-
+Nach Abschluss von *merge_calc* wird die Funktion *calculate_superposition_view* der Klasse *mergedata* des Moduls *datamerge_threadingQT* ausgeführt.
+Visuelle Updates der GUI.
 
             
 *mergeCalcThread(self)*
-
-
-        
-*area_zero_level_button(self)* [117]
-
-
-            
-*area_zero_level(self)*
-
+Führt weiter zu den Funktionen *calculate_superposition* und *confocal_data_conc* des Moduls *mergedata*.
 
         
 *browse_delete_pic_data(self)* [108]
+Führt die Funktion *delteDataThroughImage* des Moduls *mergedata* mit Fallunterscheidung nach Kontrollkästchen aus.
+Plottet das Ergebnis mit der Funktion *delte_Data_Through_Image_Plot*.
 
 
-
-*delete_data_CLSM_checkbox(self)*
-
-
- 
-*delete_data_EBSD_checkbox(self)*
-
+*delete_data_CLSM_checkbox(self)*, *delete_data_EBSD_checkbox(self)*
+Werden ausgeführt, um immer nur lediglich ein Kontrollkästchen aktiv zu halten.
 
     
-*logNewHead(self, file, title)*
-
-      
-  
-*logNewLine(self, file, text)*
-
+*logNewHead(self, filepath, title)*
+Fügt eine Zeile zum Beginnen eines neuen Absatzes in das Logfile ein. Die Zeilenbreite ist auf 40 Zeichen gesetzt, falls weniger übergeben, wird der Rest beidseitig mit Minuszeichen gefüllt.
 
     
-*createLogMergeSave(self)*
+*logNewLine(self, filepath, text)*
+Fügt eine neue Zeile an das Logfile mit dem übergebenen Text an.
+
+    
+*logNewSubline(self, filepath, text)*
+Erweitert *logNewLine* um ein vorangestelltes Minuszeichen.
+    
+
+*createLogFileMerge(self)*
+Erstellt ein Logfile für den Merge-Programmteil, Datum und Uhrzeit vorangestellt. Speichert das Logfile im tmp-Ordner als '{datetime}_logfile_merging.log' ab. Temporär ist ein Schriftzug als Platzhalter für einen künftigen Header eingefügt. Die Logfiles werden mit jedem Schreibvorgang geöffnet und geschlossen um den Programmablauf im Absturzfall sicherer festzuhalten.
 
         
-
 *tabEvaluateCLSM(self)* 
-
+Beinhaltet die Interaktivität des Tabs Evaluating der GUI.
         
      
 *threadCalculateIPFUpdateSim(self)*
@@ -299,7 +359,6 @@ Diese Funktion stellt dar, was durch *leveling_data* geschehen wird. Sie wird au
 *leveling_data(self)* [211]
 Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gewünschten Wert zu heben. Dies wird mit der Funktion *relativeHeighttoAbsHeight()* des Skripts *quibicipf_qt* erreicht. Danach werden die Testfenster mit den Höhenwerten aktualisiert.
 
-
         
 *levelingOxidData(self)* [212]
 
@@ -330,7 +389,10 @@ Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gew
 
             
 *browseCalculateIPF(self)* [223]
-
+Dient dem Aufrufen der Berechnung des IPF Datensatzes.
+Die Parameter Auflösung und Cutoff-Filter werden von der GUI ausgelesen.
+Führt die Funktion *medianDataXYZ* der Klasse *EBSDdataEvaluation* des Moduls *cubicipf_qt* in einem neuen Thread aus.
+Überprüft ob die Funktion noch läuft mit der Funktion *threadCalculateIPFUpdate*.
      
 
 *threadCalculateIPFUpdate(self)*
@@ -338,19 +400,20 @@ Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gew
 
             
 *saveIPFData(self)*
-           
+Momentan ohne Funktion. Aufgerufen durch *saveIPFData*.
     
 
 *browseDataRotationMatrix(self)* [222]
-
+Führt die Funktion *dataRotationMatrix*in einem neuen Thread aus.
+Überprüft ob die Funktion noch läuft mit der Funktion *dataRotationMatrixUpdate*.
    
      
 *dataRotationMatrix(self)*
-
+Liest die Parameter Rotationswinkel und Neigungswinkel von der GUI ein. Führt eine Rotation des *self.evaluate.mergeDataSet*-Datensatzes mithilfe der Funktion *rotation_ebsd* von den Hilfsfunktionen des Hauptprogramms aus.
 
                      
 *dataRotationMatrixUpdate(self)*
-
+Nach Abschluss der Rotation werden Grafische Updates der GUI gemacht.
 
         
 *browse_sputter_yield_plot(self)* [224]
@@ -382,7 +445,7 @@ Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gew
     
     
 *browse_optimisation_calculate(self)* [234]
-
+Funktion, die das automatisierte Ermitteln optimierter IPF Korrekturen ermöglicht. Falls ein Vergleichsdatensatz eingelesen wird, wird die Funktion *meanDataXYZ* auf einen einzulesenden Datensatz angewandt und 
 
         
 *optimisation_result(self)*
@@ -402,51 +465,64 @@ Diese Funktion hat die Aufgabe, die mittlere Höhe des Datensatzes auf einen gew
 
         
 *createLogEvalSave(self)*
+Momentan inaktiv.
 
 
 
 *appendLogEvalLeveling(self, logfile)*
+Momentan inaktiv.
 
 
         
 *browse_button_AFM_1(self)* [121]
-
+Momentan inaktiv.
+       
         
 
 *browse_button_AFM_2(self)* [122]
+Momentan inaktiv.
 
 
     
 *browse_pic_data(self)* [131]
+Momentan inaktiv.
 
         
 
 *browse_merge_view_AFM(self)* [124]
+Momentan inaktiv.
 
 
             
 *loadAFMdataThread(self)*     
+Momentan inaktiv.
 
             
 
 *loadAFM12DataThreadFinished(self)*
+Momentan inaktiv.
 
        
      
 *loadAFMdataThreadFinished(self)*
+Momentan inaktiv.
 
         
         
 *loadPicDataThread(self)*     
+Momentan inaktiv.
 
 
 
 *PicDataThreadFinished(self)*
+Momentan inaktiv.
 
          
           
 *browse_view_pic_data(self)* [132]
+Momentan inaktiv.
 
 
 
 *browse_merge_substract_AFM_12(self)* [123]
+Momentan inaktiv.

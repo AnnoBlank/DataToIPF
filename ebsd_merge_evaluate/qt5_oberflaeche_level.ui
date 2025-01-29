@@ -35,6 +35,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QToolButton" name="mergeloadEBSD">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load EBSD data in *.cft format.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(252, 175, 62);</string>
             </property>
@@ -59,8 +62,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
            <widget class="QLabel" name="label_7">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Phase of interest (if diff. from default) </string>
+             <string>Phase of interest </string>
             </property>
            </widget>
           </item>
@@ -86,6 +92,9 @@
               <width>41</width>
               <height>31</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The most common phase from the *.cft file automatically is selected. If changed, file is reloaded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
              <string/>
@@ -166,6 +175,9 @@
              <layout class="QHBoxLayout" name="horizontalLayout_12">
               <item>
                <widget class="QToolButton" name="mergeloadCLSM1">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load main CLSM height data in *.csv format.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">background-color: rgb(252, 175, 62);</string>
                 </property>
@@ -272,6 +284,9 @@
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
                <widget class="QToolButton" name="mergeloadCLSM2">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load secondary CLSM height data in *.csv format, e.g. for background feature elimination.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">background-color: rgb(252, 233, 79);</string>
                 </property>
@@ -494,6 +509,15 @@
                       </property>
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_95">
+                        <property name="spacing">
+                         <number>4</number>
+                        </property>
+                        <property name="sizeConstraint">
+                         <enum>QLayout::SetDefaultConstraint</enum>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QCheckBox" name="checkBoxParams">
                           <property name="sizePolicy">
@@ -513,13 +537,20 @@
                         <item>
                          <widget class="QLabel" name="label_90">
                           <property name="sizePolicy">
-                           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Ignored">
+                           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
                           </property>
                           <property name="text">
-                           <string>Apply Leveling by Parameters</string>
+                           <string>
+
+Apply Leveling by Parameters
+
+</string>
+                          </property>
+                          <property name="textFormat">
+                           <enum>Qt::AutoText</enum>
                           </property>
                          </widget>
                         </item>
@@ -654,11 +685,28 @@
                       <item>
                        <widget class="QLabel" name="label_3">
                         <property name="text">
-                         <string>Apply Leveling by File Input</string>
+                         <string>
+
+Apply Leveling by File Input
+
+</string>
                         </property>
                        </widget>
                       </item>
                      </layout>
+                    </item>
+                    <item>
+                     <spacer name="verticalSpacer_24">
+                      <property name="orientation">
+                       <enum>Qt::Vertical</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>20</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                     </spacer>
                     </item>
                     <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -1674,7 +1722,7 @@
 </string>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_6">
            <attribute name="title">
@@ -3431,7 +3479,7 @@
                    <item>
                     <widget class="QLabel" name="label_43">
                      <property name="text">
-                      <string>Optimisation</string>
+                      <string>Optimization</string>
                      </property>
                     </widget>
                    </item>
@@ -3620,8 +3668,23 @@
                   <layout class="QHBoxLayout" name="horizontalLayout_45">
                    <item>
                     <widget class="QLabel" name="label_48">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="text">
-                      <string>Step size [°]</string>
+                      <string>
+
+
+Tilt angle step size [°]
+
+(Rotation angle step sizes 
+adapt to current tilt angle)</string>
+                     </property>
+                     <property name="textFormat">
+                      <enum>Qt::AutoText</enum>
                      </property>
                     </widget>
                    </item>

@@ -95,3 +95,5 @@ Merging points clsm
 
 logfile
 
+"Tilt Angle Step Width"
+-> Rotation angle widths adapt to current tilt

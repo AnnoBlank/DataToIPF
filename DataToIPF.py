@@ -147,7 +147,7 @@ def meanDataXYZ(mat, resolution=2, data_less=10):
 #     print(tilt_angleall)
     
 #     data_resulttmp = rotation_ebsd(mat, tilt_angleall[0], tilt_angleall[1], 0)
-#     datacountmax = int(len(data_resulttmp) * prozentdata / 100)
+#     data_count_max = int(len(data_resulttmp) * prozentdata / 100)
 #     state = 0
 #     data_resulttmp2 = data_resulttmp.copy()
     
@@ -195,9 +195,9 @@ def meanDataXYZ(mat, resolution=2, data_less=10):
     
 #     for count in reversed(result2[4]):
 #         datacount += count
-#         if datacount > datacountmax:
+#         if datacount > data_count_max:
 #             break
-#     if datacount < datacountmax:
+#     if datacount < data_count_max:
 #         state = 1
         
 #     result2 = result2[:, -count:]
@@ -210,23 +210,23 @@ def meanDataXYZ(mat, resolution=2, data_less=10):
 def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  prozentdata, opt_points1_xy, optimisation_selct_point, tilt_angleall):
     # ipf_resolution, optimisation_selct_point , opt_points1_xy, prozentdata, tilt_angle,rotation_angle):
     print(tilt_angleall)
-    Data_resulttmp = rotation_ebsd(mat, tilt_angleall[0],tilt_angleall[1],0)
-    datacountmax = int(len(Data_resulttmp)/100*prozentdata)
+    data_resulttmp = rotation_ebsd(mat, tilt_angleall[0], tilt_angleall[1], 0)
+    data_count_max = int(len(data_resulttmp)/100*prozentdata)
     state = 0
-    Data_resulttmp2 = Data_resulttmp.copy()
+    data_resulttmp2 = data_resulttmp.copy()
     if optimisation_selct_point !=0 and len(opt_points1_xy) != 4:
-            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,9] < opt_points1_xy[1][0]*150]
-            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,10] < opt_points1_xy[1][1]*150]
-            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,9] > opt_points1_xy[0][0]*150]
-            Data_resulttmp2 = Data_resulttmp2[Data_resulttmp2[:,10] > opt_points1_xy[0][1]*150]
+            data_resulttmp2 = data_resulttmp2[data_resulttmp2[:,9] < opt_points1_xy[1][0]*150]
+            data_resulttmp2 = data_resulttmp2[data_resulttmp2[:,10] < opt_points1_xy[1][1]*150]
+            data_resulttmp2 = data_resulttmp2[data_resulttmp2[:,9] > opt_points1_xy[0][0]*150]
+            data_resulttmp2 = data_resulttmp2[data_resulttmp2[:,10] > opt_points1_xy[0][1]*150]
     
-    result = meanDataXYZ(Data_resulttmp2, ipf_resolution, data_less = 3)
+    result = meanDataXYZ(data_resulttmp2, ipf_resolution, data_less = 3)
     if len(Zcompare) != 2:
         Z = np.subtract(result[2],np.min(result[2]))
         Z = Z/np.max(Z)
         Z2 = np.subtract(Zcompare,np.min(Zcompare))
         Z2 = Z2/np.max(Z2)    
-        xi, yi = np.mgrid[0:1:200j,0:1:200j]
+        xi, yi = np.mgrid[0:1:200j, 0:1:200j]
         
         zi = griddata((np.divide(result[0],150*ipf_resolution), np.divide(result[1],150*ipf_resolution)), Z, (xi, yi))
         zi2 = griddata((np.divide(Xcompare,150*ipf_resolution), np.divide(Ycompare,150*ipf_resolution)), Z2, (xi, yi))
@@ -259,9 +259,9 @@ def optimization_calculate(mat, Xcompare, Ycompare, Zcompare, ipf_resolution,  p
     print('test')
     for i in range(0,len(result2[4])):
           datacount += result2[4,-i]
-          if datacount > datacountmax:
+          if datacount > data_count_max:
               break
-    if datacount < datacountmax:
+    if datacount < data_count_max:
         state = 1
     result2 = result2[:,-i:]
     X = result[0]
@@ -309,6 +309,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         self.EBSD_CLSM_manual_selection = False
         self.EBSD_CLSM_read_in = False
+        self.EBSDPhaseQuiet = False
         
         self.CLSM12_manual_selection = False
         self.CLSM12_read_in = False
@@ -344,11 +345,19 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         # Create tmp directory if it doesn't exist
         os.makedirs('tmp', exist_ok=True)
             
+        # Initialize timestamp
+        self.initTimestamp()
+        self.mergedata.now = self.now
+        self.mergedata.nowstr = self.nowstr
+        
         # Initialize logfiles
-        self.logfile_eval = open(os.path.join('tmp', 'logfile_evaluating.log'), 'w')
+        self.createLogFileMerge()
+        self.createLogFileEval()
+        
         
     def addTextprint_logger(self, new_text):
         self.textBrowser.append(new_text)
+        
         
     def tabMergeCLSM(self): 
         self.mergeloadCLSM1.clicked.connect(self.browse_button_CLSM_1)
@@ -368,7 +377,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.checkBoxParams.clicked.connect(self.checkBoxFileUncheck)
         self.checkBoxFileInput.clicked.connect(self.checkBoxParamsUncheck)
         self.calcByEdge.clicked.connect(self.calcSlopeByEdge)
-        self.LevelingMain.clicked.connect(self.levelingByParams)
+        self.LevelingReadIn.clicked.connect(self.browseLevelingFile)
+        self.LevelingMain.clicked.connect(self.levelingMainBrowse)
         
         self.mergeviewCLSM.setEnabled(False)
         self.autoSubstract.setEnabled(False)
@@ -419,16 +429,16 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                    
         X,Y = np.meshgrid(np.linspace(0, n-1, n), np.linspace(0, m-1, m))
         
-        #self.Zebene = C[1]*X + C[0]*Y 
         self.XSlopeLine.setText(str(round(C[1], 10)))
         self.YSlopeLine.setText(str(round(C[0], 10)))
-        #self.confocal_data = self.confocal_data-self.Zebene
+
         
     def area_zero_level_button(self):
         self.mergeSave.setStyleSheet(self.color_click_on)
         if len(self.mergedata.confocal_data) == 2:
             self.load_clsm_data_thread()
-            self.thread.finished.connect(self.area_zero_level)
+            print('Calculating CLSM Data first, try once again.')
+            # self.thread.finished.connect(self.area_zero_level)
         else:
             try:
                 self.mergedata.data_zero_level(1)
@@ -436,6 +446,27 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.Offset00Line.setText(str(round(self.mergedata.Zerowerte_all[0], 10)))
             except:
                 print('Error')    
+    
+    def levelingMainBrowse(self):
+        if self.checkBoxParams.checkState():
+            self.levelingByParams()
+        elif self.checkBoxFileInput.checkState():
+            self.levelingByFile()
+    
+    def levelingByFile(self):
+        filepath = self.lineEdit_4.text()
+        
+        Zebene = np.loadtxt(filepath, delimiter=',')
+        
+        self.mergedata.confocal_data = self.mergedata.confocal_data - Zebene
+        
+        print(f"Substracted heights through file {filepath}")
+
+        
+    def browseLevelingFile(self):
+        # file_name, _ = QFileDialog.getOpenFileName(directory = directory, caption= cap, filter=fil, options=options)
+        file_name = self.browse_button_master("Plane CSV File", 'CSV File (*.csv)')
+        self.lineEdit_4.setText(file_name)
     
     def levelingByParams(self):
         data = self.mergedata.confocal_data
@@ -449,8 +480,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         else:
             Offset = 0
             
-        Zebene = XSlope*X + YSlope*Y 
-        self.mergedata.confocal_data = self.mergedata.confocal_data - Zebene - Offset
+        Zebene = XSlope*X + YSlope*Y + Offset
+        
+        # Zebene = Zebene.round(5)
+        
+        np.savetxt(os.path.join('tmp', 'Affine_plane.csv'), Zebene, fmt='%.7e', delimiter=',')
+        
+        self.mergedata.confocal_data = self.mergedata.confocal_data - Zebene
         
         # print(r"Data was leveled by Parameters/n X_Slope: {}\n Y_Slope: {}\n Offset: {}".format(XSlope, YSlope, Offset))
         print(f"X_Slope: {round(XSlope, 10)}")
@@ -468,6 +504,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     def browse_view_CLSM12(self):
         self.load_clsm_data_thread()#followup_selection = False
         if self.loadCLSM1line.text() != '' and self.loadCLSM2line.text() != '':
+            # self.thread.finished.connect(self.mergedata.view_confocal_data)
             0
         elif (len(self.mergedata.confocal_data) == 2 or not self.data_merge_clsm_single):
             self.thread.finished.connect(self.mergedata.view_confocal_data)
@@ -511,18 +548,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.thread.started.connect(self.worker.load_confocal_data)
                 self.thread.finished.connect(self.load_clsm_data_thread_finished)
                 self.thread.start()
-                
-                self.data_merge_clsm_single = True
-                # self.mergeviewCLSM.setEnabled(False)
-                # self.autoSubstract.setEnabled(False)
-                # self.mergesubstractCLSM12.setEnabled(False)
-                # self.loadsubstractCLSM12.setEnabled(False)
+
                 self.check_CLSM_availability()
                 
-                # self.mergeviewCLSM.setEnabled(False)
-                # self.autoSubstract.setEnabled(False)
-                # self.mergesubstractCLSM12.setEnabled(False)
-                # self.loadsubstractCLSM12.setEnabled(False)
                 
                 # self.load_clsm_data_thread_finished()
 
@@ -544,10 +572,6 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.data_merge_clsm_single = False
                 self.select_point_for_diff = True
                 
-                # self.mergeviewCLSM.setEnabled(False)
-                # self.autoSubstract.setEnabled(False)
-                # self.mergesubstractCLSM12.setEnabled(False)
-                # self.loadsubstractCLSM12.setEnabled(False)
                 self.check_CLSM_availability()
 
             else:
@@ -578,7 +602,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.plot_confocal(self.worker.confocal_data, '000_Confocal_leveled(now).png')
             
             self.plot_confocal(self.worker.Zebene, '000_Ebene.png')
-        print(8)
+        # print(8)
         self.mergedata.confocal_data = self.worker.confocal_data 
         self.mergedata.confocal_image = self.worker.confocal_image
         self.clean_up_thread()
@@ -673,12 +697,20 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         return file_name
     
+    
     def browse_button_EBSD(self):
         file_name = self.browse_button_master("EBSD CTF File", 'CTF File (*.ctf)')
         # file_name = "C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf"
         self.loadEBSDline.setText(file_name)
         
         if file_name:
+            # Logfile entry
+            self.logNewHead(self.logfile_merge_path, 'New Data Merging')
+            _, relativePath = os.path.split(file_name)
+            self.logNewLine(self.logfile_merge_path, 'Load_EBSD: ' + relativePath)
+            self.logNewSubline(self.logfile_merge_path, 'Full EBSD filepath: ' + file_name)
+            
+            # Continuation of processing the file
             self.load_ebsd_data()
             self.mergeloadEBSD.setStyleSheet(self.green)
             self.ebsd_loaded = True
@@ -698,9 +730,16 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeloadCLSM1.setStyleSheet(self.green)
             self.mergeSelectPoints.setStyleSheet(self.color_click_on)
             self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
+            
+            # Logfile entry
+            _, relativePath = os.path.split(file_name)
+            self.logNewLine(self.logfile_merge_path, 'Load_CLSM_1: ' + relativePath)
+            self.logNewSubline(self.logfile_merge_path, 'Full CLSM_1 filepath: ' + file_name + '\n')
         else:
             self.mergeloadCLSM1.setStyleSheet(self.color_click_on)
         self.check_CLSM_availability()    
+        
+
             
     def browse_button_CLSM_2(self):
         file_name = self.browse_button_master('CLSM csv File', 'CLSM CSV File (*.csv)')
@@ -711,6 +750,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         if file_name:
             self.render_clsm_data(CLSM_render_set = 1)
             self.mergeloadCLSM2.setStyleSheet(self.green)
+            
+            # Logfile entry
+            _, relativePath = os.path.split(file_name)
+            self.logNewLine(self.logfile_merge_path, 'Load_CLSM_2: ' + relativePath)
+            self.logNewSubline(self.logfile_merge_path, 'Full CLSM_2 filepath: ' + file_name + '\n')
         else:
             self.mergeloadCLSM2.setStyleSheet(self.color_optional)
         self.check_CLSM_availability()
@@ -734,36 +778,58 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         if file_name:
             self.select_points()
+            
+            # Logfile entry
+            # _, relativePath = os.path.split(file_name)
+            # self.logNewLine(self.logfile_merge_path, 'Load_Matching_Points_Difference_Microscopy: ' + relativePath)
+            # self.logNewSubline(self.logfile_merge_path, 'Full Matching Points filepath: ' + file_name)
+ 
+            
         else:
             print('No file selected for input of matching points')
+            
+            # Logfile entry
+            self.logNewLine(self.logfile_merge_path, 'Load_Matching_Points_Difference_Microscopy Failed: No input file given!')
     
-    
-    def browse_load_points_diff(self):
-        file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true = True)
+    # def browse_load_points_diff(self):
+    #     file_name = self.browse_button_master('Matching Points .txt File', 'CLSM Matching Points File (*.txt)', tmp_true = True)
         
-        if file_name:
-            self.select_points_diff()
-        else:
-            print('No file selected for input of matching points')
+    #     if file_name:
+    #         self.select_points_diff()
+    #     else:
+    #         print('No file selected for input of matching points')
     
     
     def browse_load_pic_data(self):
         if type(self.mergedata.dataclsm) != int:
-            file_name = self.browse_button_master('CLSM csv File', 'Picture data (*.bmp *.jpeg *.jpg *.tif *.tiff);; JPEG (*.jpeg)')
-            
-            self.loadDeletDataline.setText(file_name)
-            self.mergedata.loadPicdataForDelete(file_name)
-        
-            self.mergeDeleteDataPicExecButton.setEnabled(True)
+            file_name = self.browse_button_master('CLSM File', 'Picture data (*.bmp *.jpeg *.jpg *.tif *.tiff);; JPEG (*.jpeg)')
 
+            if file_name:
+                self.loadDeletDataline.setText(file_name)
+                self.mergedata.loadPicdataForDelete(file_name)
+            
+                self.mergeDeleteDataPicExecButton.setEnabled(True)
+                
+                # Logfile entry
+                _, relativePath = os.path.split(file_name)
+                self.logNewLine(self.logfile_merge_path, 'Load_mask_from_Picture_data: ' + relativePath)
+                self.logNewSubline(self.logfile_merge_path, 'Full Picture data filepath: ' + file_name)
+            else:
+                print('Subtraction of mask was not applied: No mask file given!')
+                
+                # Logfile entry
+                self.logNewLine(self.logfile_merge_path, 'Load_mask_from_Picture_data Failed: No mask file given!')
+            
         else:
-            print('Merging was not applied')
-    
+            print('Subtraction of mask was not applied: No CLSM Data!')
+            
+            # Logfile entry
+            self.logNewLine(self.logfile_merge_path, 'Load_mask_from_Picture_data Failed: No CLSM Data!')
     
     def merge_save_data(self):
         file_name = self.browse_button_master('Save .dat file', 'File *.dat (*.dat)', save = True, tmp_true=True, name_suggestion = '000_merge.dat')
         
-        print('Merged data saved as '+file_name)
+        
         self.show_warning_save()
         self.dataMergeProgressBar.setMaximum(100)
         if file_name[-4:] == '.dat':
@@ -775,13 +841,25 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.merge_save_path=file_name
                 self.mergeSave.setStyleSheet(self.green)
                 self.dataMergeProgressBar.setMaximum(100)
-            self.createLogMergeSave()
+                print('Merged data saved as: '+ file_name +'.dat')
+                
+                # Logfile entry
+                self.logNewLine(self.logfile_merge_path, f'Merged data saved as: {file_name}.dat')
+                
+            #self.createLogMergeSave()
             if (self.mergedata.Zerowerte_all != 0):
-                np.savetxt(f'{file_name}-Zerolevel-{np.round(np.mean(self.mergedata.Zerowerte_all),3)}.dat', self.mergedata.Zerowerte_all)
+                zerolevelName = f'{file_name}-Zerolevel-{np.round(np.mean(self.mergedata.Zerowerte_all),3)}.dat'
+                np.savetxt(zerolevelName, self.mergedata.Zerowerte_all)
+                print(f'Zerolevel data saved as: {zerolevelName}')
+                
+                # Logfile entry
+                self.logNewLine(self.logfile_merge_path, f'Zerolevel data saved as: {zerolevelName}')
                 
         except:
             print('Data save failed')
-
+            
+            # Logfile entry
+            self.logNewLine(self.logfile_merge_path, 'Data save failed: Unknown reason!')
 
     def browse_sim_load_MD(self):
         file_name = self.browse_button_master('MD data File', 'File .dat (*.dat)')
@@ -830,6 +908,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.mergedata.load_confocal_data_diff_plt(leveling = 0)# self.mergeLevelingcheckBox.checkState())
         
         
+        
+        
     def load_auto_clsm1_2_data_thread_finished_finished(self):
         self.rendering_clsm1_2_data_thread_finished()
         self.mergedata.pattern_matching_auto(leveling = 0)# self.mergeLevelingcheckBox.checkState())
@@ -857,8 +937,13 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         
     def ebsd_phase_changed(self):
-        if self.ebsd_loaded and (self.phaseEBSD.text() !=''):
-             self.load_ebsd_data()
+        if self.ebsd_loaded and (self.phaseEBSD.text() !='') and not self.EBSDPhaseQuiet:
+            # Logfile entry
+            self.logNewLine(self.logfile_merge_path, 'Manual phase Change to: ' + self.phaseEBSD.text() +'\n')
+            print('Phase changed to: ' + self.phaseEBSD.text())
+            
+            # Continue
+            self.load_ebsd_data()
         
         
     def load_ebsd_data(self):
@@ -881,9 +966,14 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.EBSD_phase=phase
             print(f"Automated phase detection used phase = {phase}")
             self.workerEBSD.phaseEBSD=phase
-        
-        
-        
+            self.EBSDPhaseQuiet = True
+            self.phaseEBSD.setText(str(phase))
+            self.EBSDPhaseQuiet = False
+            
+            # Entry for logfile
+            self.logNewSubline(self.logfile_merge_path, 'Automated detection found phase: '+ phase + '\n')
+
+
         self.workerEBSD.X_grid = 0
         self.workerEBSD.Y_grid = 0
         self.workerEBSD.Z_grid = 0
@@ -984,6 +1074,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeSelectPoints.setStyleSheet(self.color_click_on)
             self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
               
+
+        
     def load_ebsd_view(self):
         if self.ebsd_loaded:
             self.mergedata.view_EBSD_data()
@@ -995,15 +1087,28 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             if len(self.mergedata.confocal_data) == 2:
                 self.load_clsm_data_thread()
                 self.select_points_status = 1
+                
+                print("CLSM data was rendered")
+                self.logNewLine(self.logfile_merge_path, "CLSM data was rendered" +'\n')
+                
             elif len(self.mergedata.confocal_data) != 2 :
+                
                 if self.mergedata.P.shape == (2,):
                     self.dataMergeProgressBar.setMaximum(100)
-                    if(self.loading_points==1):
+                    if(self.loading_points == 1):
+                        #print("Loading matching points from file")
+                        
+                        
                         self.mergedata.load_points_merge(self.loading_pointsFileName)
                         self.manual_selection = False
                         self.read_in_selection = True
-                        self.loading_points=0
+                        self.loading_points = 0
+                        
+                        
+                        
                     else:
+                        
+                        
                         self.mergedata.calibrate_confocal_and_EBSD_data()
                     
                     if self.mergedata.P.shape != (2,):
@@ -1014,6 +1119,9 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     
                 else:
                     self.dataMergeProgressBar.setMaximum(100)
+                    print("Matching points already given, proceeding to selection window")
+                    self.logNewLine(self.logfile_merge_path, "Selection window opened" +'\n')
+                    
                     self.select_points_window()
                 
         else:
@@ -1022,10 +1130,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
 
     
 
-    def select_points_finished(self):
-        self.mergedata.calibrate_confocal_and_EBSD_data()
-        self.mergeSelectPoints.setStyleSheet(self.green)
-        self.mergeCalculateMerge.setStyleSheet(self.color_click_on)     
+    # def select_points_finished(self):
+    #     self.mergedata.calibrate_confocal_and_EBSD_data()
+    #     self.mergeSelectPoints.setStyleSheet(self.green)
+    #     self.mergeCalculateMerge.setStyleSheet(self.color_click_on)     
             
     def select_points_window(self):
         self.dialog = SecondWindow(self)
@@ -1084,16 +1192,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeCalculateMerge.setStyleSheet(self.green)
             self.mergeCalculateMerge.setEnabled(False)
             
-    def select_points_window_select(self):
-
-        mask = np.zeros(len(self.dialog.checkBox))
-        for i in range(len(self.dialog.checkBox)):                
-            mask[i] = self.dialog.checkBox[i].checkState()
-        P_keep = self.mergedata.P[mask != 0]
-        Pc_keep = self.mergedata.Pc[mask != 0]
+    def select_points_window_select(self):            
         plt.close('all')
         self.dialog.destroy()
-        self.mergedata.calibrate_confocal_and_EBSD_data(P_keep,Pc_keep)
+        self.mergedata.calibrate_confocal_and_EBSD_data(self.mergedata.P,self.mergedata.Pc)
         if self.mergedata.P.shape != (2,):
                     self.mergeSelectPoints.setStyleSheet(self.green)
                     self.mergeCalculateMerge.setStyleSheet(self.color_click_on)
@@ -1103,6 +1205,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.mergeCalculateMerge.setStyleSheet(self.green)
             self.mergeCalculateMerge.setEnabled(False)
         
+
     def merge_calc(self):
         
         self.dataMergeProgressBar.setMaximum(0)
@@ -1112,7 +1215,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         self.mergeCalculateMerge.setEnabled(False)
         QTimer.singleShot(500, self.mergeCalcUpdate)
-    
+
+
     def mergeCalcUpdate(self):
         if self.thread_merge_calc.is_alive():
             QTimer.singleShot(500, self.mergeCalcUpdate)
@@ -1122,6 +1226,10 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.dataMergeProgressBar.setMaximum(100)
             self.mergeCalculateMerge.setStyleSheet(self.green)
             self.mergeSave.setStyleSheet(self.color_click_on)
+            print("Merging of EBSD and CLSM data was applied!")
+            self.logNewLine(self.logfile_merge_path, "Transformation of CLSM coordinates to EBSD framework was executed succesfully" +'\n')
+            
+            
             
     def mergeCalcThread(self):
         self.mergedata.calculate_superposition()
@@ -1129,18 +1237,18 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         
         print('Thread finished')
         
-    def area_zero_level_button(self):
-        self.mergeSave.setStyleSheet(self.color_click_on)
-        if len(self.mergedata.confocal_data) == 2:
-            self.load_clsm_data_thread()
-            self.thread.finished.connect(self.area_zero_level)
-        else:
-            try:
-                self.mergedata.data_zero_level(1)
-                print(f"Mean height of selected Area: {self.mergedata.Zerowerte_all[0]}")
-                self.Offset00Line.setText(str(self.mergedata.Zerowerte_all[0]))
-            except:
-                print('Error')
+    # def area_zero_level_button(self):
+    #     self.mergeSave.setStyleSheet(self.color_click_on)
+    #     if len(self.mergedata.confocal_data) == 2:
+    #         self.load_clsm_data_thread()
+    #         self.thread.finished.connect(self.area_zero_level)
+    #     else:
+    #         try:
+    #             self.mergedata.data_zero_level(1)
+    #             print(f"Mean height of selected Area: {self.mergedata.Zerowerte_all[0]}")
+    #             self.Offset00Line.setText(str(self.mergedata.Zerowerte_all[0]))
+    #         except:
+    #             print('Error')
             
     # def area_zero_level_button(self):
     #     self.mergeSave.setStyleSheet(self.color_click_on)
@@ -1180,68 +1288,111 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         else:
             self.mergeDeleteCLSMcheckBox.setChecked(True)
     
-    def logNewHead(self, file, title):
-        linewidth=40
-        file.writelines("-"*(linewidth-int(len(title)/2))+' '+title+' '+"-"*(linewidth-int(len(title)/2))+'\n')
-        
-    def logNewLine(self, file, text):
-        file.writelines(text+'\n')
+    def logNewHead(self, filepath, title):
+        if not os.path.isfile(filepath):
+            print('Error: Logfile not initialized!')
+        else:
+            linewidth = 40
+            logfile = open(filepath, 'a')
+            logfile.writelines("-"*(linewidth-int(len(title)/2))+' '+title+' '+"-"*(linewidth-int(len(title)/2))+'\n\n')
+            logfile.close()    
     
-    def createLogMergeSave(self):
-        self.logfile_merge = open(os.path.join('tmp', 'logfile_merging.log'), 'w')
-        
-        EBSD_file = self.loadEBSDline.text()
-        
-        self.logNewHead(self.logfile_merge, 'Data Merging')
-        self.logNewLine(self.logfile_merge, 'EBSD filepath:\t'+EBSD_file)
-        self.logNewLine(self.logfile_merge, 'Used phase:\t'+self.EBSD_phase)
-        self.logNewLine(self.logfile_merge, '')
+    def logNewLine(self, filepath, text):
+        if not os.path.isfile(filepath):
+            print('Error: Logfile not initialized!')
+        else:
+            logfile = open(filepath, 'a')
+            logfile.writelines(text + '\n')
+            logfile.close()
+    
+    def logNewSubline(self, filepath, text):
+        self.logNewLine(filepath, ' - ' + text)
+    
+    def initTimestamp(self):
+        self.now = datetime.now(pytz.utc)
+        self.nowstr = (str(self.now.date())+'_'+
+                  "{:02}".format(self.now.hour)+'h_'+
+                  "{:02}".format(self.now.minute)+'m_'+
+                  "{:02}".format(self.now.second)+'s')
+    
+    def createLogFileMerge(self):
+        self.logfile_merge_path = os.path.join('tmp', self.nowstr+'_logfile_merging.log')
+        self.mergedata.logfile_merge_path = self.logfile_merge_path
+        logfile = open(self.logfile_merge_path, 'w')
+        #logfile.writelines('_Header_\n')
+        logfile.writelines('Logfile created: '+
+                           str(self.now.date()) + ' at ' + 
+                           str(self.now.hour) + ':' + 
+                           str(self.now.minute) + ':' + 
+                           str(self.now.second) + '\n\n')
+        logfile.close()
 
-        CLSM_file_1 = self.loadCLSM1line.text()
-        CLSM_file_1_rotation = self.mergeroationCLSM1.currentText()
-        CLSM_file_1_mirrorCheck = bool(self.CLSM1checkBox.checkState())
+    def createLogFileEval(self):
+        self.logfile_eval_path = os.path.join('tmp', self.nowstr+'_logfile_evaluation.log')
+        self.mergedata.logfile_eval_path = self.logfile_eval_path
+        logfile = open(self.logfile_eval_path, 'w')
+        #logfile.writelines('_Header_\n')
+        logfile.writelines('Logfile created: '+
+                           str(self.now.date()) + ' at ' + 
+                           str(self.now.hour) + ':' + 
+                           str(self.now.minute) + ':' + 
+                           str(self.now.second) + '\n\n')
+        logfile.close()
+    # def createLogMergeSave(self):
+    #     self.logfile_merge = open(os.path.join('tmp', 'logfile_merging.log'), 'w')
         
-        CLSM_file_2 = self.loadCLSM2line.text()
-        CLSM_file_2_rotation = self.mergeroationCLSM2.currentText()
-        CLSM_file_2_mirrorCheck = bool(self.CLSM2checkBox.checkState())
+    #     EBSD_file = self.loadEBSDline.text()
         
-        CLSM_file_leveling = bool(0)#self.mergeLevelingcheckBox.checkState())
+    #     self.logNewHead(self.logfile_merge, 'Data Merging')
+    #     self.logNewLine(self.logfile_merge, 'EBSD filepath:\t'+EBSD_file)
+    #     self.logNewLine(self.logfile_merge, 'Used phase:\t'+self.EBSD_phase)
+    #     self.logNewLine(self.logfile_merge, '')
+
+    #     CLSM_file_1 = self.loadCLSM1line.text()
+    #     CLSM_file_1_rotation = self.mergeroationCLSM1.currentText()
+    #     CLSM_file_1_mirrorCheck = bool(self.CLSM1checkBox.checkState())
+        
+    #     CLSM_file_2 = self.loadCLSM2line.text()
+    #     CLSM_file_2_rotation = self.mergeroationCLSM2.currentText()
+    #     CLSM_file_2_mirrorCheck = bool(self.CLSM2checkBox.checkState())
+        
+    #     CLSM_file_leveling = bool(0)#self.mergeLevelingcheckBox.checkState())
         
         
         
-        self.logNewHead(self.logfile_merge, 'Confocal Data')
-        differenceMicroscopyUsed=False
-        if ((CLSM_file_1 != '') and (CLSM_file_2 != '')):
-            differenceMicroscopyUsed=True
-        self.logNewLine(self.logfile_merge, 'CLSM 1 filepath:\t'+CLSM_file_1)
-        self.logNewLine(self.logfile_merge, 'CLSM 1 used rotaion:\t'+CLSM_file_1_rotation)
-        self.logNewLine(self.logfile_merge, 'CLSM 1 was mirrored:\t'+str(CLSM_file_1_mirrorCheck))
-        self.logNewLine(self.logfile_merge, '')
-        self.logNewLine(self.logfile_merge, 'Difference Microscopy applied: '+str(differenceMicroscopyUsed))
-        if differenceMicroscopyUsed:
-            self.logNewLine(self.logfile_merge, 'CLSM 2 filepath:\t'+CLSM_file_2)
-            self.logNewLine(self.logfile_merge, 'CLSM 2 used rotaion:\t'+CLSM_file_2_rotation)
-            self.logNewLine(self.logfile_merge, 'CLSM 2 was mirrored:\t'+str(CLSM_file_2_mirrorCheck))
-        self.logNewLine(self.logfile_merge, '')
-        self.logNewLine(self.logfile_merge, 'Leveling was applied:\t'+str(CLSM_file_leveling))
-        self.logNewLine(self.logfile_merge, '')
+    #     self.logNewHead(self.logfile_merge, 'Confocal Data')
+    #     differenceMicroscopyUsed=False
+    #     if ((CLSM_file_1 != '') and (CLSM_file_2 != '')):
+    #         differenceMicroscopyUsed=True
+    #     self.logNewLine(self.logfile_merge, 'CLSM 1 filepath:\t'+CLSM_file_1)
+    #     self.logNewLine(self.logfile_merge, 'CLSM 1 used rotaion:\t'+CLSM_file_1_rotation)
+    #     self.logNewLine(self.logfile_merge, 'CLSM 1 was mirrored:\t'+str(CLSM_file_1_mirrorCheck))
+    #     self.logNewLine(self.logfile_merge, '')
+    #     self.logNewLine(self.logfile_merge, 'Difference Microscopy applied: '+str(differenceMicroscopyUsed))
+    #     if differenceMicroscopyUsed:
+    #         self.logNewLine(self.logfile_merge, 'CLSM 2 filepath:\t'+CLSM_file_2)
+    #         self.logNewLine(self.logfile_merge, 'CLSM 2 used rotaion:\t'+CLSM_file_2_rotation)
+    #         self.logNewLine(self.logfile_merge, 'CLSM 2 was mirrored:\t'+str(CLSM_file_2_mirrorCheck))
+    #     self.logNewLine(self.logfile_merge, '')
+    #     self.logNewLine(self.logfile_merge, 'Leveling was applied:\t'+str(CLSM_file_leveling))
+    #     self.logNewLine(self.logfile_merge, '')
         
-        self.logNewHead(self.logfile_merge, 'Merging Options')
+    #     self.logNewHead(self.logfile_merge, 'Merging Options')
         
-        if self.EBSD_CLSM_manual_selection and self.EBSD_CLSM_read_in:
-            self.logNewLine(self.logfile_merge, 'Points partially manually selected and read in from file')
-            self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
-        elif self.EBSD_CLSM_manual_selection:
-            self.logNewLine(self.logfile_merge, 'Points manually selected')
-        elif self.EBSD_CLSM_read_in:
-            self.logNewLine(self.logfile_merge, 'Points read in from file')
-            self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
-        self.logNewLine(self.logfile_merge, f'Final selection written to path:\t{self.mergedata.save_selected_points_merge}')
+    #     if self.EBSD_CLSM_manual_selection and self.EBSD_CLSM_read_in:
+    #         self.logNewLine(self.logfile_merge, 'Points partially manually selected and read in from file')
+    #         self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
+    #     elif self.EBSD_CLSM_manual_selection:
+    #         self.logNewLine(self.logfile_merge, 'Points manually selected')
+    #     elif self.EBSD_CLSM_read_in:
+    #         self.logNewLine(self.logfile_merge, 'Points read in from file')
+    #         self.logNewLine(self.logfile_merge, f'Read from path:\t{self.loading_pointsFileName}')
+    #     self.logNewLine(self.logfile_merge, f'Final selection written to path:\t{self.mergedata.save_selected_points_merge}')
         
-        self.logNewLine(self.logfile_merge, '')
-        self.logNewLine(self.logfile_merge, f'Merged savepath:\t{self.merge_save_path}.dat')
+    #     self.logNewLine(self.logfile_merge, '')
+    #     self.logNewLine(self.logfile_merge, f'Merged savepath:\t{self.merge_save_path}.dat')
         
-        self.logfile_merge.close()
+    #     self.logfile_merge.close()
         
 #%%
     def tabEvaluateCLSM(self): 
@@ -1399,7 +1550,15 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.evaluateLoadDataButtonLineEdit.setText(file_name)
         self.evaluate.dataPathFile = file_name
         
+        
         if file_name:
+            self.logNewHead(self.logfile_eval_path, 'New Evaluation')
+            _, relativePath = os.path.split(file_name)
+            self.logNewLine(self.logfile_eval_path, 'Load merge data: ' + relativePath)
+            self.logNewSubline(self.logfile_eval_path, 'Full mergefile filepath: ' + file_name)
+            reduction_factor = int(self.spinBoxMergedReduce.cleanText())
+            self.logNewSubline(self.logfile_eval_path, f'Compression factor applied: {reduction_factor}^2 = {reduction_factor**2}')
+            
             self.evaluateProgressBar.setMaximum(0)
             self.evaluateLoadDataButton.setEnabled(False)
             self.evaluateLevelDataButton.setEnabled(False)
@@ -1409,6 +1568,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.thread_evaluate_loadData.start()
             
             QTimer.singleShot(500, self.evaluate_load_data_update)
+            
+            
         
     def evaluate_load_data(self):
         self.evaluate.mergeDataSet = np.loadtxt(self.evaluate.dataPathFile)
@@ -1417,8 +1578,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         #k = 12
         if k != 1:
             mask = np.array([i % k == 0 for i in range(len(self.evaluate.mergeDataSet))])
-        
-        self.evaluate.mergeDataSet = self.evaluate.mergeDataSet[mask]
+            self.evaluate.mergeDataSet = self.evaluate.mergeDataSet[mask]
         # print(self.evaluate.mergeDataSet[mask].shape)
         # print(mask.shape)
     
@@ -1443,15 +1603,15 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             pass
         
     def leveling_data(self):
-        if type(self.evaluate.mergeDataSet)== int:
+        if type(self.evaluate.mergeDataSet) == int:
             print('No data')
         else:
             self.evaluateCalculateIPFbutton.setStyleSheet(self.color_click_on)
             self.evaluateSaveDataButton.setStyleSheet(self.color_click_on)
             self.evaluate.relativeHeighttoAbsHeight()
-            self.evaluateMeanEroisionlineEdit.setText( str(np.round(np.mean(self.evaluate.mergeDataSet[:,2]),4)))
-            self.lineEditAfterLeveling.setText(str(0 ))
-            self.evaluateRefereceLevelLineEdit.setText(str(0 ))
+            self.evaluateMeanEroisionlineEdit.setText(str(np.round(np.mean(self.evaluate.mergeDataSet[:,2]), 4)))
+            self.lineEditAfterLeveling.setText(str(0))
+            self.evaluateRefereceLevelLineEdit.setText(str(0))
         
     def levelingOxidData(self):
         if type(self.evaluate.mergeDataSet)== int:
@@ -1606,9 +1766,11 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 self.evaluateCountplotButton.setStyleSheet(self.green)
                 
                 self.saveIPFData()
+    
             
     def saveIPFData(self):
         0        
+    
     
     def browseDataRotationMatrix(self):
        
@@ -1620,6 +1782,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
         self.threadDataRotationMatrix.start()
         
         QTimer.singleShot(500, self.dataRotationMatrixUpdate) 
+        
         
     def dataRotationMatrix(self):
         if type(self.evaluate.mergeDataSet) == int:
@@ -1635,6 +1798,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
                 except:
                     print('Only numbers. No Strings!')
                      
+                    
     def dataRotationMatrixUpdate(self):
         if self.threadDataRotationMatrix.is_alive():
             QTimer.singleShot(500, self.dataRotationMatrixUpdate)
@@ -1648,7 +1812,8 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.evaluateErosionPlotButton.setStyleSheet(self.color_click_on)
             self.evaluateSDplotButton.setStyleSheet(self.color_click_on)
             self.evaluateCountplotButton.setStyleSheet(self.color_click_on)
-        
+    
+    
     def browse_sputter_yield_plot(self):
         if len(self.evaluate.heightIPF) == 1:
             print('No data')
@@ -2006,19 +2171,19 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
             self.evaluate.resolutionOptimisation = self.optiResolutionIPFLineEdit_2.text()
             self.evaluate.optimisationSelctPointsIPF()
         
-    def createLogEvalSave(self):
-        LoadedMergedData = self.evaluateLoadDataButtonLineEdit.text()
-        self.levelingNumber = 0
-        self.logNewHead(self.logfile_eval, 'Data Evaluating')
-        self.logNewLine(self.logfile_eval, 'Merged Data filepath:\t'+LoadedMergedData)
+    # def createLogEvalSave(self):
+    #     LoadedMergedData = self.evaluateLoadDataButtonLineEdit.text()
+    #     self.levelingNumber = 0
+    #     self.logNewHead(self.logfile_eval, 'Data Evaluating')
+    #     self.logNewLine(self.logfile_eval, 'Merged Data filepath:\t'+LoadedMergedData)
 
-    def appendLogEvalLeveling(self, logfile):
-        self.levelingNumber += 1
-        self.logNewHead(logfile, f'Sputter_Erosion_Leveling #{self.levelingNumber}')
-        self.logNewLine(logfile, '')
-        self.logNewLine(logfile, 'Sputter_Erosion_Leveling was applied with parameters:')
-        self.logNewLine(logfile, f'Reference level:\t{self.evaluateRefereceLevelLineEdit.text()}')
-        self.logNewLine(logfile, 'Mean Value:\t')
+    # def appendLogEvalLeveling(self, logfile):
+    #     self.levelingNumber += 1
+    #     self.logNewHead(logfile, f'Sputter_Erosion_Leveling #{self.levelingNumber}')
+    #     self.logNewLine(logfile, '')
+    #     self.logNewLine(logfile, 'Sputter_Erosion_Leveling was applied with parameters:')
+    #     self.logNewLine(logfile, f'Reference level:\t{self.evaluateRefereceLevelLineEdit.text()}')
+    #     self.logNewLine(logfile, 'Mean Value:\t')
         
     # def browse_button_AFM_1(self):
     #     file_name = self.browse_button_master('AFM ibw File', 'AFM ibw File (*.ibw)')
@@ -2115,7 +2280,7 @@ class connectButton(qt5_oberflaeche.Ui_MainWindow, QMainWindow):
     #             self.workerAFM.loadAFM1line =  self.loadAFM1line.text()
     #             self.workerAFM.loadAFM2line =  self.loadAFM2line.text()
     #             self.workerAFM.mergeroationAFM1 = self.mergeroationAFM1.currentText()[:-1]
-    #             self.workerAFM.mergeroationAFM2 = self.mergeroationAFM2.currentText()[:-1]
+    #             self.workerAFM.mergeroationAFM2 =loadAFM12DataThreadFinished self.mergeroationAFM2.currentText()[:-1]
     #             self.workerAFM.AFM1checkBox = self.AFM1checkBox.checkState()
     #             self.workerAFM.AFM2checkBox = self.AFM2checkBox.checkState()
                 

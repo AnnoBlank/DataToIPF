@@ -46,7 +46,7 @@ class EBSDdataEvaluation():
             grid_x, grid_y = np.mgrid[0:45:grid_sizej, 0:45:grid_sizej]
             x = np.arange(0, 46, 1)
             pts = np.array([[i,j] for i in x for j in x] )
-            vals = np.reshape(SoutterYIeldSim[1:,1:], (46*46))
+            vals = np.reshape(SoutterYIeldSim[1:, 1:], (46*46))
             grid_z = griddata(pts, vals, (grid_x, grid_y), method='linear')
     
             Data2 = -1*np.ones((grid_size*grid_size,11))
@@ -56,68 +56,68 @@ class EBSDdataEvaluation():
                 x = xmax * i / (grid_size-1.)
                 for j in range(grid_size):
                     y = xmax * j / (grid_size-1.)
-                    Data2[k,6] = 4*x / (4 + x**2 + y**2)
-                    Data2[k,7] = 4*y / (4 + x**2 + y**2)
-                    Data2[k,8] =  (4 - x**2 - y**2) / (4 + x**2 + y**2) 
-                    Data2[k,2] = grid_z[i][j]
+                    Data2[k, 6] = 4*x / (4 + x**2 + y**2)
+                    Data2[k, 7] = 4*y / (4 + x**2 + y**2)
+                    Data2[k, 8] =  (4 - x**2 - y**2) / (4 + x**2 + y**2) 
+                    Data2[k, 2] = grid_z[i][j]
                     k = k+1
                     
-            XY= np.zeros((Data2.shape[0],2))
+            XY= np.zeros((Data2.shape[0], 2))
             for k in range(0,Data2.shape[0]):
-                    XY[k,:] = ipfzXY.poleA2(Data2[k,6],Data2[k,7],Data2[k,8])
-            Data2[:,9] = XY[:,0]
-            Data2[:,10] = XY[:,1]
+                    XY[k,:] = ipfzXY.poleA2(Data2[k, 6],Data2[k, 7],Data2[k, 8])
+            Data2[:, 9] = XY[:, 0]
+            Data2[:, 10] = XY[:, 1]
             self.mergeDataSet = Data2
 
     def loadMDData(self):
         try:
             fileName = self.dataPathFile
-            with open(fileName,"r",errors="replace") as f:
+            with open(fileName, "r", errors="replace") as f:
                 CRSTdata = f.readlines()  
             num = len(CRSTdata)
-            Data1 = -1*np.ones((num,11))
+            Data1 = -1 * np.ones((num,11))
             euler1Index = self.euler1Index
             euler2Index = self.euler2Index
             dataIndex = self.dataIndex
             print('Load data')
             for i , lines in enumerate(CRSTdata):
                 cells = lines.split()
-                Data1[i,2] = cells[dataIndex-1]
-                Data1[i,4:5] = cells[euler1Index-1:euler1Index]
-                Data1[i,5:6] = cells[euler2Index-1:euler2Index]
+                Data1[i, 2] = cells[dataIndex-1]
+                Data1[i, 4:5] = cells[euler1Index-1:euler1Index]
+                Data1[i, 5:6] = cells[euler2Index-1:euler2Index]
                 
     
             grid_y, grid_x = np.mgrid[43:45:31j, 51:56:51j]
-            grid_z = griddata(Data1[:,4:6], Data1[:,2], (grid_x, grid_y), method='linear')
+            grid_z = griddata(Data1[:, 4:6], Data1[:, 2], (grid_x, grid_y), method = 'linear')
             
-            num2=grid_z.shape[0]*grid_z.shape[1]
-            Data = -1*np.ones((num+num2,11))      
-            Data[:num,4:5] = Data1[:num,4:5]
-            Data[:num,5:6] = Data1[:num,5:6]
-            Data[:num,2:3] = Data1[:num,2:3]
-            Data[num:,4:5] = grid_x.reshape((num2,1))
-            Data[num:,5:6] = grid_y.reshape((num2,1))
-            Data[num:,2:3] = grid_z.reshape((num2,1))
-            mask = np.logical_not(Data[:,5] == -1)
+            num2 = grid_z.shape[0] * grid_z.shape[1]
+            Data = -1 * np.ones((num + num2, 11))      
+            Data[:num,4: 5] = Data1[:num, 4:5]
+            Data[:num,5: 6] = Data1[:num, 5:6]
+            Data[:num,2: 3] = Data1[:num, 2:3]
+            Data[num:,4: 5] = grid_x.reshape((num2, 1))
+            Data[num:,5: 6] = grid_y.reshape((num2, 1))
+            Data[num:,2: 3] = grid_z.reshape((num2, 1))
+            mask = np.logical_not(Data[:, 5] == -1)
             Data = Data[mask]
     
             Data[:,6] = np.sin((Data[:, 4]) * np.pi / 180) * np.sin((Data[:, 5]) * np.pi / 180)
             Data[:,7] = np.sin((Data[:, 4]) * np.pi / 180) * np.cos((Data[:, 5]) * np.pi / 180)
-            Data[:,8] = np.cos((Data[:, 4])* np.pi / 180)
+            Data[:,8] = np.cos((Data[:, 4]) * np.pi / 180)
     
             mask = np.zeros(Data.shape[0])
-            for i in range(0,Data.shape[0]):
-                if (Data[i,6] <= Data[i,8]  and  Data[i,7] <= Data[i,8]   and Data[i,7] >= Data[i,6] ):
+            for i in range(0, Data.shape[0]):
+                if (Data[i,6] <= Data[i, 8] and Data[i, 7] <= Data[i, 8] and Data[i, 7] >= Data[i, 6] ):
                     mask[i]= True
                 else:
                     mask[i]= False
             Data = Data[mask == 1]
-            XY= np.zeros((Data.shape[0],2))
+            XY= np.zeros((Data.shape[0], 2))
             
-            for k in range(0,Data.shape[0]):
-                    XY[k,:] = ipfzXY.poleA2(Data[k,7],Data[k,6],Data[k,8])
-            Data[:,9] = XY[:,0]
-            Data[:,10] = XY[:,1]
+            for k in range(0, Data.shape[0]):
+                    XY[k,:] = ipfzXY.poleA2(Data[k, 7], Data[k, 6], Data[k, 8])
+            Data[:, 9] = XY[:, 0]
+            Data[:, 10] = XY[:, 1]
     
             self.mergeDataSet = Data
         except:
@@ -128,15 +128,15 @@ class EBSDdataEvaluation():
         self.dataPathFiles
         self.mergeDataSet = np.loadtxt(self.dataPathFiles[0])
         print('Load data set 1')
-        for i in range(1,len(self.dataPathFiles)):
+        for i in range(1, len(self.dataPathFiles)):
             tmp = np.loadtxt(self.dataPathFiles[i])
-            tmp[:,0] = tmp[:,0]+ np.max(self.mergeDataSet[:,0])
+            tmp[:, 0] = tmp[:, 0]+ np.max(self.mergeDataSet[:, 0])
             self.mergeDataSet = np.concatenate((self.mergeDataSet,tmp))
             print(f'Load{i+1}')
             
     def combine_data(self,data2merge):
         print('Load data set 1')
-        data2merge[:,0] = data2merge[:,0]+ np.max(self.mergeDataSet[:,0])
+        data2merge[:, 0] = data2merge[:, 0] + np.max(self.mergeDataSet[:, 0])
         self.mergeDataSet = np.concatenate((self.mergeDataSet,data2merge))
         print(f'Load{1}')
 
@@ -145,8 +145,8 @@ class EBSDdataEvaluation():
     def relativeHeighttoAbsHeight(self):
     
         print(f'Mean relative height: {np.round(np.mean(self.mergeDataSet[:,2]),5)}    ------    Amount of  values: {len(self.mergeDataSet[:,2])}' )
-        meanRelative100= np.mean(self.mergeDataSet[:,2])
-        self.mergeDataSet[:,2] = (self.mergeDataSet[:,2] - meanRelative100)+ self.refereceHeight 
+        meanRelative100 = np.mean(self.mergeDataSet[:, 2])
+        self.mergeDataSet[:, 2] = (self.mergeDataSet[:, 2] - meanRelative100) + self.refereceHeight 
         return True
     
     
@@ -160,76 +160,76 @@ class EBSDdataEvaluation():
             
         for i in range(len(Data_result)):
             Data_result[i] = r[i].get()
-            print('DataGet ',i)
+            print('DataGet ', i)
         return Data_result
         
     
-    def SpikesContrast(Data_result, lowerLimit= 20, UpperLimit= 235):
+    def SpikesContrast(Data_result, lowerLimit = 20, UpperLimit = 235):
         Data_result_Sp = []
         Data_result_Sp = Data_result
         for i in range(len(Data_result_Sp)):
-            Data_result_Sp[i] = Data_result_Sp[i][Data_result_Sp[i][:,2] <UpperLimit]
-            Data_result_Sp[i] = Data_result_Sp[i][Data_result_Sp[i][:,2] >lowerLimit]
+            Data_result_Sp[i] = Data_result_Sp[i][Data_result_Sp[i][:, 2] < UpperLimit]
+            Data_result_Sp[i] = Data_result_Sp[i][Data_result_Sp[i][:, 2] > lowerLimit]
             
         return Data_result_Sp
-    def normContrast2(merge_EBSD_CLSM_DATA, ContrastNromFactor=256):
-        i=0
+    def normContrast2(merge_EBSD_CLSM_DATA, ContrastNromFactor = 256):
+        i = 0
         print('Start Radius 10')
-        mtmp1 = -1*np.ones((len(merge_EBSD_CLSM_DATA),)+merge_EBSD_CLSM_DATA[0].shape)
-        i1=0
-        mtmp2 = -1*np.ones((len(merge_EBSD_CLSM_DATA),)+merge_EBSD_CLSM_DATA[0].shape)
-        i2=0
+        mtmp1 = -1 * np.ones((len(merge_EBSD_CLSM_DATA),) + merge_EBSD_CLSM_DATA[0].shape)
+        i1 = 0
+        mtmp2 = -1 * np.ones((len(merge_EBSD_CLSM_DATA),) + merge_EBSD_CLSM_DATA[0].shape)
+        i2 = 0
         for i in range(len(merge_EBSD_CLSM_DATA)):
             
     
-            if1tmp = merge_EBSD_CLSM_DATA[i,9]
-            if2tmp = merge_EBSD_CLSM_DATA[i,10]
-            if (np.sqrt(if1tmp**2+if2tmp**2))<10:
-                tmp =  merge_EBSD_CLSM_DATA[i:i+1,:]
+            if1tmp = merge_EBSD_CLSM_DATA[i, 9]
+            if2tmp = merge_EBSD_CLSM_DATA[i, 10]
+            if (np.sqrt(if1tmp**2 + if2tmp**2)) < 10:
+                tmp =  merge_EBSD_CLSM_DATA[i:i+1, :]
                 mtmp1[i:i+len(tmp),] = tmp
                 i1 = i1+len(tmp)
-            if if1tmp < 100 and if1tmp > 88  and if2tmp <36 and if2tmp >24:
-                tmp =  merge_EBSD_CLSM_DATA[i:i+1,:]
-                mtmp2[i:i+len(tmp),] = tmp
-                i2 = i2+len(tmp)
+            if if1tmp < 100 and if1tmp > 88  and if2tmp < 36 and if2tmp > 24:
+                tmp =  merge_EBSD_CLSM_DATA[i:i+1, :]
+                mtmp2[i:i + len(tmp),] = tmp
+                i2 = i2 + len(tmp)
         print('Finish')
-        mtmp1 = mtmp1[mtmp1[:,0] !=-1]
-        mtmp2 = mtmp2[mtmp2[:,0] !=-1]
+        mtmp1 = mtmp1[mtmp1[:, 0] != -1]
+        mtmp2 = mtmp2[mtmp2[:, 0] != -1]
     
-        print('MeannormContrast100', np.median(mtmp1[:,2]),'Anzahl Werte', len(mtmp1))
-        print('MeannormContrastXXX', np.median(mtmp2[:,2]),'Anzahl Werte', len(mtmp2))
-        meanContrast100= np.median(mtmp1[:,2])
-        meanMaxContrast= np.median(mtmp2[:,2]) - meanContrast100
-        merge_EBSD_CLSM_DATA[:,2] = (merge_EBSD_CLSM_DATA[:,2] - meanContrast100)*(ContrastNromFactor/meanMaxContrast)
+        print('MeannormContrast100', np.median(mtmp1[:, 2]), 'Anzahl Werte', len(mtmp1))
+        print('MeannormContrastXXX', np.median(mtmp2[:, 2]), 'Anzahl Werte', len(mtmp2))
+        meanContrast100= np.median(mtmp1[:, 2])
+        meanMaxContrast= np.median(mtmp2[:, 2]) - meanContrast100
+        merge_EBSD_CLSM_DATA[:, 2] = (merge_EBSD_CLSM_DATA[:, 2] - meanContrast100) * (ContrastNromFactor/meanMaxContrast)
         return merge_EBSD_CLSM_DATA
     
-    def normContrast(merge_EBSD_CLSM_DATA, ContrastNromFactor=256):
+    def normContrast(merge_EBSD_CLSM_DATA, ContrastNromFactor = 256):
         mtmp1 = 0
         mtmp2 = 0
         print('Start Radius 10')
         
         
         for i in range(len(merge_EBSD_CLSM_DATA)):     
-            if1tmp = merge_EBSD_CLSM_DATA[i,9]
-            if2tmp = merge_EBSD_CLSM_DATA[i,10]
-            if (np.sqrt(if1tmp**2+if2tmp**2))<10:
-                tmp =  merge_EBSD_CLSM_DATA[i:i+1,:]
+            if1tmp = merge_EBSD_CLSM_DATA[i, 9]
+            if2tmp = merge_EBSD_CLSM_DATA[i, 10]
+            if (np.sqrt(if1tmp**2 + if2tmp**2)) < 10:
+                tmp =  merge_EBSD_CLSM_DATA[i:i+1, :]
                 if type(mtmp1) == int:
                     mtmp1 = tmp
                 else:
-                    mtmp1 = np.concatenate((mtmp1,tmp))
-            if if1tmp < 98 and if1tmp > 90  and if2tmp <36 and if2tmp >28:
-                tmp =  merge_EBSD_CLSM_DATA[i:i+1,:]
+                    mtmp1 = np.concatenate((mtmp1, tmp))
+            if if1tmp < 98 and if1tmp > 90  and if2tmp < 36 and if2tmp > 28:
+                tmp =  merge_EBSD_CLSM_DATA[i:i+1, :]
                 if type(mtmp2) == int:
                     mtmp2 = tmp
                 else:
-                    mtmp2 = np.concatenate((mtmp2,tmp))
+                    mtmp2 = np.concatenate((mtmp2, tmp))
         print('Finish')
-        print('MeannormContrast100', np.median(mtmp1[:,2]),'Anzahl Werte', len(mtmp1))
-        print('MeannormContrastXXX', np.median(mtmp2[:,2]),'Anzahl Werte', len(mtmp2))
-        meanContrast100= np.median(mtmp1[:,2])-30
-        meanMaxContrast= np.median(mtmp2[:,2]) - meanContrast100
-        merge_EBSD_CLSM_DATA[:,2] = (merge_EBSD_CLSM_DATA[:,2] - meanContrast100)*(200/ meanMaxContrast)/ContrastNromFactor
+        print('MeannormContrast100', np.median(mtmp1[:, 2]), 'Anzahl Werte', len(mtmp1))
+        print('MeannormContrastXXX', np.median(mtmp2[:, 2]), 'Anzahl Werte', len(mtmp2))
+        meanContrast100 = np.median(mtmp1[:, 2]) - 30
+        meanMaxContrast = np.median(mtmp2[:, 2]) - meanContrast100
+        merge_EBSD_CLSM_DATA[:, 2] = (merge_EBSD_CLSM_DATA[:, 2] - meanContrast100) * (200/ meanMaxContrast)/ContrastNromFactor
         return merge_EBSD_CLSM_DATA
 
     #%%
@@ -237,8 +237,8 @@ class EBSDdataEvaluation():
     
     
     def relativeHeighttoAbsOxidTungstenHeight100(self):
-        mtmp1 = -1*np.ones((len(self.mergeDataSet),)+self.mergeDataSet[0].shape)
-        i1=0
+        mtmp1 = -1 * np.ones((len(self.mergeDataSet),) + self.mergeDataSet[0].shape)
+        i1 = 0
         for i in range(len(self.mergeDataSet)):     
             if1tmp = self.mergeDataSet[i,9]
             if2tmp = self.mergeDataSet[i,10]

@@ -5,7 +5,7 @@ Created on Mon Mar 27 20:19:12 2017
 @author: karsten
 """
 
-
+import os
 import numpy as np
 import cv2 as cv
 from ebsd_merge_evaluate import ipfzXY
@@ -22,6 +22,27 @@ from PyQt5.QtCore import QObject, pyqtSignal #, QThread
 #from mpl_interactions import panhandler, zoom_factory
 
 
+def logNewHead(filepath, title):
+    if not os.path.isfile(filepath):
+        print('Error: Logfile not initialized!')
+    else:
+        linewidth = 40
+        logfile = open(filepath, 'a')
+        logfile.writelines("-"*(linewidth-int(len(title)/2))+' '+title+' '+"-"*(linewidth-int(len(title)/2))+'\n\n')
+        logfile.close()    
+
+def logNewLine(filepath, text):
+    if not os.path.isfile(filepath):
+        print('Error: Logfile not initialized!')
+    else:
+        logfile = open(filepath, 'a')
+        logfile.writelines(text + '\n')
+        logfile.close()
+
+def logNewSubline(filepath, text):
+    logNewLine(filepath, ' - ' + text)
+
+    
 class parent_merge(QObject):
     def __init__(self):
         super().__init__()
@@ -991,7 +1012,7 @@ class mergedata(parent_merge):
     
     def view_EBSD_data(self):
         color = self.color
-        print('Rendereing EBSD data, please wait...')
+        print('Rendering EBSD data, please wait...')
         fig_ebsd = plt.figure(figsize=(10, 10))
         ax_ebsd = fig_ebsd.add_subplot(1, 1, 1)
         Norma = self.Orientation.max(axis=0)
@@ -1041,7 +1062,7 @@ class mergedata(parent_merge):
 
             self.confocal_data = data
             
-            print('Rendereing picture data, please wait...')           
+            print('Rendering picture data, please wait...')           
             self.confocal_image = np.rot90(data[::-1, :], k=3)  
 
         except:
@@ -1049,7 +1070,7 @@ class mergedata(parent_merge):
 
     
     def view_pic_data(self):
-        print('Rendereing Tiff data, please wait...')
+        print('Rendering Tiff data, please wait...')
         plt.figure(figsize=(10, 10))
            
         plt.imshow(self.Ztiff_grid, extent=(np.min(self.Xtiff), np.max(self.Xtiff), 
@@ -1145,6 +1166,7 @@ class mergedata(parent_merge):
         return reset_fun
     
     def calibrate_confocal_and_EBSD_data(self,P_keep=0,Pc_keep=0):
+        print("Selecting new/additional matching points")
         print('Waiting for user input...')
         P = self.P
         Pc = self.Pc
@@ -1222,12 +1244,22 @@ class mergedata(parent_merge):
         Pc = Pc[Pc[:,0] != -1,:]
         Pt=np.append(Pc,P, axis=1)
         hString='EBSD_xcoord EBSD_ycoord CLSM_xcoord CLSM_ycoord'
-        self.save_selected_points_merge = 'tmp/000_selected_points_merge.txt'
+        self.save_selected_points_merge = 'tmp/'+self.nowstr+'_selected_points_merge.txt'
         np.savetxt(self.save_selected_points_merge,Pt, header=hString,fmt='%7.1f')
         self.P = P
         self.Pc = Pc
+        print('User input saved!')
         print('Ready for merging the data.')
+        
         plt.close('all')
+        
+        logNewLine(self.logfile_merge_path, 
+                   "Matching Points aquired manually:\n" +
+                   "EBSD:\n" +
+                   str(P) + '\n' +
+                   "CLSM:\n" +
+                   str(Pc) + '\n')
+        
         return True
 
     def load_points_merge(self, filename):
@@ -1237,8 +1269,21 @@ class mergedata(parent_merge):
         Pc=Pt[:,:2]
         self.P = P
         self.Pc = Pc
+        
+
         print('Ready for merging the data.')
         plt.close('all')
+        # print(P)
+        _, relativePath = os.path.split(filename)
+        logNewLine(self.logfile_merge_path, 'Load_Matching_Points_Difference_Microscopy: ' + relativePath)
+        logNewSubline(self.logfile_merge_path, 'Full Matching Points filepath: ' + filename)
+
+        logNewLine(self.logfile_merge_path, 
+                   "EBSD:\n" +
+                   str(P) + '\n' +
+                   "CLSM:\n" +
+                   str(Pc) + '\n')
+        
         return True
     
     def load_diff_points(self, filename):
@@ -1258,7 +1303,7 @@ class mergedata(parent_merge):
         print('Calculating transformation...')
         if self.P.shape == (2,):
             print('Reference points are loaded')
-            Pt=np.loadtxt('tmp/000_selected_points.txt')
+            Pt=np.loadtxt('tmp/'+self.nowstr+'_selected_points_merge.txt')
             P=Pt[:,1:]
             Pc=Pt[:,:2]
             self.P = P

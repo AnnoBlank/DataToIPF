@@ -1,0 +1,29 @@
+_Header_
+Logfile created: 2025-01-16 at 14:2:23
+
+-------------------------------- New Data Merging --------------------------------
+
+Load_EBSD: EBSD_data.ctf
+ - Full EBSD filepath: C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/EBSD_data.ctf
+ - Automated detection found phase: 1
+
+Load_CLSM_1: CLSM_data_1.csv
+ - Full CLSM_1 filepath: C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/CLSM_data_1.csv
+
+CLSM data was rendered
+
+Matching Points aquired manually:
+EBSD:
+[[ 248.71505376  525.05268817]
+ [1538.34086022  554.19677419]
+ [ 230.5        1654.38602151]
+ [1767.85053763 1621.59892473]]
+CLSM:
+[[ 65.18434409  68.16063558]
+ [592.63931183  86.19401569]
+ [ 55.616      445.35883614]
+ [587.85513978 434.83936442]]
+
+Load_CLSM_2: CLSM_data_2_optinal_for_differenc_Microscopy.csv
+ - Full CLSM_2 filepath: C:/Users/Robin/FAUbox/Uni/Garching_HiWi/data_rb/CLSM_data_2_optinal_for_differenc_Microscopy.csv
+
