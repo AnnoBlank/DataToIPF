@@ -9,13 +9,8 @@ from datetime import datetime
 import threading
 import multiprocessing as mp
 
-# importing packages for GUI usage
-from PyQt5 import  QtWidgets
-from PyQt5.QtCore import QObject, QThread, QTimer, QRect, pyqtSignal, Qt
-from PyQt5.QtWidgets import QFileDialog, QMainWindow, QDialog, QLabel
-import ebsd_merge_evaluate.qt5_interface_level as qt5_interface # use this specific GUI
-
-# importing data processing and visalization packages
+# Third-party package imports
+import pytz
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -24,14 +19,30 @@ from scipy.interpolate import griddata
 import scipy.linalg
 from functools import partial
 
-# importing self-written data processing packages
+# PyQt5 imports
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, QThread, QTimer, QRect, pyqtSignal, Qt
+from PyQt5.QtWidgets import QFileDialog, QMainWindow, QDialog, QLabel
+
+# Project-specific imports
+import ebsd_merge_evaluate.qt5_interface_level as qt5_interface
 import ebsd_merge_evaluate.datamerge_threadingQT as merge
-import ebsd_merge_evaluate.cubicipf_qt as ks
+import ebsd_merge_evaluate.cubicipf_qt as cubic_ipf
 import ebsd_merge_evaluate.ipfzXY as ipfzXY
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))    # setting file directory as working directory, mainly to keep the tmp folder working
-mpl.use('Qt5Agg')                                       # setting the mpl backend to Qt5
+# Constants
+WORKING_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
+
+# Utility function
+def setup_environment():
+    """Set up the working directory and matplotlib backend for the environment."""
+    os.chdir(WORKING_DIRECTORY)
+    mpl.use('Qt5Agg')  # Use Qt5Agg backend for Matplotlib
+
+
+# Initialize environment
+setup_environment()
 # create the logger for in-GUI printouts of information on working status
 class PrintLogger(QObject):
     """
@@ -338,8 +349,8 @@ class connectButton(qt5_interface.Ui_MainWindow, QMainWindow):
         self.mergedata = merge.mergedata()
         self.tabMergeCLSM()
 
-        self.evaluate = ks.EBSDdataEvaluation()
-        self.evaluateSim = ks.EBSDdataEvaluation()
+        self.evaluate = cubic_ipf.EBSDdataEvaluation()
+        self.evaluateSim = cubic_ipf.EBSDdataEvaluation()
         self.tabEvaluateCLSM()
         self.evaluate.opt_points1_xy = np.array([0, 0, 0, 0])
 
