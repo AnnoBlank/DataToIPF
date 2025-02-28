@@ -25,32 +25,50 @@ class Wedge:
         dir2=(1, 1, 1),
         theta_max=None,
     ):
+        self._initialize_lines()
+        self.circle = self._initialize_circle(dir1, dir2, theta_max)
+
+    def _initialize_lines(self):
+        """Define the horizontal and diagonal lines for the wedge."""
         self.horizontal_line = Line(0, 1, 0)
         self.diagonal_line = Line(1, -1, 0)
-        if theta_max is None:
-            dirn = np.cross(dir1, dir2)
-            if dirn[2] < 0:
-                dirn = -dirn
-            costheta = dirn[2] / np.linalg.norm(dirn)
-            phi = np.arctan2(dirn[1], dirn[0])
-            r = 2 / costheta
-            rc = r * np.sqrt(1 - costheta**2)
-            xc, yc = cartesian(rc, phi)
-            self.circle = Circle(xc, yc, r)
-        else:
-            rmax = stereographic_projection(theta_max)
-            self.circle = Circle(0, 0, rmax)
 
-    def contains(
-        self,
-        point,
-        tol=0.001,
-    ):
+    def _initialize_circle(self, dir1, dir2, theta_max):
         """
-        Determine if wedge contains the point.
+        Compute and return the circle defining the wedge using either:
+          - Stereographic projection of two crystal axes, or
+          - A given maximum angle (theta_max).
+        """
+        if theta_max is None:
+            return self._get_stereographic_circle(dir1, dir2)
+        else:
+            radius_max = stereographic_projection(theta_max)
+            return Circle(0, 0, radius_max)
 
-        :param point: Point.
-        :return: Flag indicating whether wedge contains the point.
+    def _get_stereographic_circle(self, dir1, dir2):
+        """
+        Compute the circle using stereographic projection from the crystal axes.
+        """
+        normal_vector = np.cross(dir1, dir2)
+        # Ensure the normal vector points upward
+        if normal_vector[2] < 0:
+            normal_vector = -normal_vector
+
+        cos_theta = normal_vector[2] / np.linalg.norm(normal_vector)
+        phi = np.arctan2(normal_vector[1], normal_vector[0])
+        radius = 2 / cos_theta
+
+        # Project circle center using stereographic projection
+        projected_radius = radius * np.sqrt(1 - cos_theta ** 2)
+        center_x, center_y = cartesian(projected_radius, phi)
+        return Circle(center_x, center_y, radius)
+
+    def contains(self, point, tol=0.001):
+        """
+        Determine if the wedge contains the given point.
+        :param point: Point as (x, y) tuple.
+        :param tol: Tolerance for boundary checks.
+        :return: Flag indicating whether the wedge contains the point.
         """
         return (
             self.horizontal_line.isbelow(point, tol)
