@@ -38,7 +38,6 @@ def setup_environment():
     """Set up the working directory and matplotlib backend for the environment."""
     os.chdir(WORKING_DIRECTORY)
     mpl.use("Qt5Agg")  # Use Qt5Agg backend for Matplotlib
-    print("Logging initialized")
 
 
 # Initialize environment

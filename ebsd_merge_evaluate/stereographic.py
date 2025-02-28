@@ -8,10 +8,14 @@ the z axis, and phi denotes the azimuthal angle. The point in the 2D
 plane can be described by its Cartesian coordinates (x,y) or its polar
 coordinates (r,phi). phi is the same for the direction and the point.
 """
+
 import numpy as np
 
 
-def stereographic_projection(theta, phi=None):
+def stereographic_projection(
+    theta,
+    phi=None,
+):
     """
     Perform the stereographic projection (theta,phi) -> (r,phi).
 
@@ -19,7 +23,7 @@ def stereographic_projection(theta, phi=None):
     :param phi: Azimuthal angle (rad)
     :return (r,phi): Polar coordinates in the plane
     """
-    r = 2 * np.tan(0.5*theta)
+    r = 2 * np.tan(0.5 * theta)
 
     if phi is None:
         return r
@@ -27,7 +31,10 @@ def stereographic_projection(theta, phi=None):
         return r, phi
 
 
-def inverse_stereographic_projection(r, phi=None):
+def inverse_stereographic_projection(
+    r,
+    phi=None,
+):
     """
     Perform the inverse stereographic projection (r,phi) -> (theta,phi).
 
@@ -35,7 +42,7 @@ def inverse_stereographic_projection(r, phi=None):
     :param phi: Azimuthal angle (rad)
     :return (theta,phi): polar coordinates of the direction
     """
-    theta = 2 * np.arctan(0.5*r)
+    theta = 2 * np.arctan(0.5 * r)
 
     if phi is None:
         return theta
@@ -43,7 +50,10 @@ def inverse_stereographic_projection(r, phi=None):
         return theta, phi
 
 
-def cartesian(r, phi):
+def cartesian(
+    r,
+    phi,
+):
     """
     Convert polar to Cartesian coordinates.
 
@@ -57,7 +67,10 @@ def cartesian(r, phi):
     return x, y
 
 
-def polar(x, y):
+def polar(
+    x,
+    y,
+):
     """
     Convert Cartesian to polar coordinates.
 
@@ -72,13 +85,16 @@ def polar(x, y):
 
 
 # not sure where we need this:
-def intersect_bounding_box(circle, bbox):
+def intersect_bounding_box(
+    circle,
+    bbox,
+):
     xc, yc, r = circle
     xmin, ymin, xmax, ymax = bbox
     intersections = []
     # intersections with x=xmin and x=xmax
     for x in (xmin, xmax):
-        discriminant = r**2 - (x-xc)**2
+        discriminant = r**2 - (x - xc) ** 2
         if discriminant >= 0:
             for sign in (1, -1):
                 y = yc + sign * np.sqrt(discriminant)
@@ -86,7 +102,7 @@ def intersect_bounding_box(circle, bbox):
                     intersections.append((x, y))
     # intersections with y=ymin and y=ymax
     for y in (ymin, ymax):
-        discriminant = r**2 - (y-yc)**2
+        discriminant = r**2 - (y - yc) ** 2
         if discriminant >= 0:
             for sign in (1, -1):
                 x = xc + sign * np.sqrt(discriminant)
@@ -97,11 +113,12 @@ def intersect_bounding_box(circle, bbox):
     return intersections
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import matplotlib.pyplot as plt
+
     xs, ys = get_wedge()
     plt.plot(xs, ys)
     xs, ys = get_triangle(10)
-    plt.plot(xs, ys, '--')
-    plt.gca().set_aspect('equal')
+    plt.plot(xs, ys, "--")
+    plt.gca().set_aspect("equal")
     plt.show()
