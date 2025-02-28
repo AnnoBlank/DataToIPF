@@ -31,13 +31,18 @@ python		== 3.9.17
 spyder		== 5.4.3
 CMD		== 0.1.1
 
-Required packages, installed with pip in (Anaconda):
+Required packages, installed with pip (in Anaconda):
 numpy 		== 1.25.1
 matplotlib 	== 3.7.2
 scipy		== 1.10.1
 opencv-python	== 4.8.0.74
 scikit-image	== 0.21.0
 scikit-learn	== 1.3.0
+
+Alternatively, you can install all of them by running
+```commandline
+pip install -r requirements_new.txt
+```
 
 ---------------  Documentation  ---------------
 3 evaluation-tabs + 1 info-tab:
