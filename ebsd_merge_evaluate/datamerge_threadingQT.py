@@ -8,6 +8,7 @@ Created on Mon Mar 27 20:19:12 2017
 import os
 import numpy as np
 import cv2 as cv
+from datetime import datetime
 from ebsd_merge_evaluate import ipfzXY
 import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
@@ -23,43 +24,7 @@ from PyQt5.QtCore import QObject, pyqtSignal  # , QThread
 # from mpl_interactions import panhandler, zoom_factory
 
 
-def logNewHead(
-    filepath,
-    title,
-):
-    if not os.path.isfile(filepath):
-        print("Error: Logfile not initialized!")
-    else:
-        linewidth = 40
-        logfile = open(filepath, "a")
-        logfile.writelines(
-            "-" * (linewidth - int(len(title) / 2))
-            + " "
-            + title
-            + " "
-            + "-" * (linewidth - int(len(title) / 2))
-            + "\n\n"
-        )
-        logfile.close()
 
-
-def logNewLine(
-    filepath,
-    text,
-):
-    if not os.path.isfile(filepath):
-        print("Error: Logfile not initialized!")
-    else:
-        logfile = open(filepath, "a")
-        logfile.writelines(text + "\n")
-        logfile.close()
-
-
-def logNewSubline(
-    filepath,
-    text,
-):
-    logNewLine(filepath, " - " + text)
 
 
 class parent_merge(QObject):
@@ -88,6 +53,96 @@ class parent_merge(QObject):
         self.Zerowerte_all = 0
         self.dataclsm = 0
         self.threading_true = False
+
+    def initTimestamp(self):
+        self.now = datetime.now()
+        self.nowstr = (
+            str(self.now.date())
+            + "_"
+            + "{:02}".format(self.now.hour)
+            + "h_"
+            + "{:02}".format(self.now.minute)
+            + "m_"
+            + "{:02}".format(self.now.second)
+            + "s"
+        )
+
+    def createLogFileMerge(self):
+        self.logfile_merge_path = os.path.join(
+            "tmp", self.nowstr + "_logfile_merging.log"
+        )
+        logfile = open(self.logfile_merge_path, "w")
+        # logfile.writelines('_Header_\n')
+        logfile.writelines(
+            "Logfile created: "
+            + str(self.now.date())
+            + " at "
+            + str(self.now.hour)
+            + ":"
+            + str(self.now.minute)
+            + ":"
+            + str(self.now.second)
+            + "\n\n"
+        )
+        logfile.close()
+
+    def createLogFileEval(self):
+        self.logfile_eval_path = os.path.join(
+            "tmp", self.nowstr + "_logfile_evaluation.log"
+        )
+        logfile = open(self.logfile_eval_path, "w")
+        # logfile.writelines('_Header_\n')
+        logfile.writelines(
+            "Logfile created: "
+            + str(self.now.date())
+            + " at "
+            + str(self.now.hour)
+            + ":"
+            + str(self.now.minute)
+            + ":"
+            + str(self.now.second)
+            + "\n\n"
+        )
+        logfile.close()
+
+    def logNewHead(
+        self,
+        filepath: str,
+        title: str,
+    ):
+        if not os.path.isfile(filepath):
+            print("Error: Logfile not initialized!")
+        else:
+            linewidth = 40
+            logfile = open(filepath, "a")
+            logfile.writelines(
+                "-" * (linewidth - int(len(title) / 2))
+                + " "
+                + title
+                + " "
+                + "-" * (linewidth - int(len(title) / 2))
+                + "\n\n"
+            )
+            logfile.close()
+
+    def logNewLine(
+        self,
+        filepath: str,
+        text: str,
+    ):
+        if not os.path.isfile(filepath):
+            print("Error: Logfile not initialized!")
+        else:
+            logfile = open(filepath, "a")
+            logfile.writelines(text + "\n")
+            logfile.close()
+
+    def logNewSubline(
+        self,
+        filepath: str,
+        text: str,
+    ):
+        self.logNewLine(filepath, " - " + text)
 
     def render_confocal_image(
         self,
@@ -458,8 +513,11 @@ class parent_merge(QObject):
                     self.confocal_data_1
                 )
                 self.CLSM1_rendered = True
+                print("CLSM 1 has been rendered.")
+                self.logNewLine(self.logfile_merge_path, "CLSM 1 has been rendered\n")
                 # self.confocal_data = self.confocal_data_1
                 # self.confocal_image = self.confocal_image_data_1
+
 
             elif CLSM_set == 1:
                 self.confocal_data_2 = np.rot90(confocal_data, k=rotation_data)
@@ -468,6 +526,8 @@ class parent_merge(QObject):
                     self.confocal_data_2
                 )
                 self.CLSM2_rendered = True
+                print("CLSM 2 has been rendered.")
+                self.logNewLine(self.logfile_merge_path, "CLSM 2 has been rendered\n")
 
         except:
             if CLSM_set == 0:
@@ -532,6 +592,9 @@ class parent_merge(QObject):
                     self.confocal_image_data_1 = self.render_confocal_image(
                         self.confocal_data_1
                     )
+                    print("CLSM 1 has been rendered.")
+                    self.logNewLine(self.logfile_merge_path, "CLSM 1 has been rendered\n")
+
                     # self.confocal_data = self.confocal_data_1
                     # self.confocal_image = self.confocal_image_data_1
 
@@ -542,6 +605,9 @@ class parent_merge(QObject):
                     self.confocal_image_data_2 = self.render_confocal_image(
                         self.confocal_data_2
                     )
+                    print("CLSM 2 has been rendered.")
+                    self.logNewLine(self.logfile_merge_path, "CLSM 2 has been rendered\n")
+
             # file_name2 =  self.loadCLSM1line
 
             # anzahlrows =  np.loadtxt(file_name2, delimiter=',', skiprows=25, usecols=[5])
@@ -574,8 +640,8 @@ class parent_merge(QObject):
 
 class mergeThread(parent_merge):
     finished = pyqtSignal()
-    deletThread = pyqtSignal()
-    progress = pyqtSignal(int)
+    #deletThread = pyqtSignal()
+    #progress = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
@@ -858,6 +924,11 @@ class mergeThread(parent_merge):
 
 class mergedata(parent_merge):
     # %%
+    def __init__(self):
+        super().__init__()
+        self.initTimestamp()
+        self.createLogFileMerge()
+        self.createLogFileEval()
 
     def calculate_new_coordinates(self):
         dst_EBSD = self.Pc
@@ -1558,7 +1629,7 @@ class mergedata(parent_merge):
 
         plt.close("all")
 
-        logNewLine(
+        self.logNewLine(
             self.logfile_merge_path,
             "Matching Points aquired manually:\n"
             + "EBSD:\n"
@@ -1586,15 +1657,15 @@ class mergedata(parent_merge):
         plt.close("all")
         # print(P)
         _, relativePath = os.path.split(filename)
-        logNewLine(
+        self.logNewLine(
             self.logfile_merge_path,
             "Load_Matching_Points_Difference_Microscopy: " + relativePath,
         )
-        logNewSubline(
+        self.logNewSubline(
             self.logfile_merge_path, "Full Matching Points filepath: " + filename
         )
 
-        logNewLine(
+        self.logNewLine(
             self.logfile_merge_path,
             "EBSD:\n" + str(P) + "\n" + "CLSM:\n" + str(Pc) + "\n",
         )

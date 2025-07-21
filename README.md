@@ -41,7 +41,7 @@ scikit-learn	== 1.3.0
 
 Alternatively, you can install all of them by running
 ```commandline
-pip install -r requirements_new.txt
+pip install -r requirements.txt
 ```
 
 ---------------  Documentation  ---------------
@@ -92,7 +92,8 @@ Read in via "File_CLSM1 (experiment)"
 
 ------------------  Merging  ------------------
 Matching points between EBSD and reference data can be selected manually
-or read in from file. The manually selected points get saved to 
+or read in from file (a third option, matching from structures, is still 
+in progress). The manually selected points get saved to 
 'tmp/000_selected-points.dat' for future reuse.
 When saving the data as an .dat file, an additional logfile gets created
 as 'logfile_merging.log', carrying all the inputs made in the GUI.
@@ -104,13 +105,18 @@ points and replace them:
 	then press 'Save'
 2. Press 'Select points for merging', press 'Select new points' and 
 	continue normally, e.g with zoom function 
-3. Press 'Select points for merging' and uncheck to be deleted additional
-	bug point, then press 'Save'
+3. Press 'Select points for merging' and uncheck to be deleted points, 
+	then press 'Save'
 
 Data is saved as .dat file. The internal structure includes the X, Y coordinates 
 of the EBSD data, the heights from the CLSM data, the three Euler Angles, the 
 orientation in HKL, the X, Y coordinates in the CLSM system and some still 
 unknown data labeled ___datamerge_1_32.
+
+Some areas can be removed from the evaluation, e.g. if the investigated area is 
+bigger then the exposed. In order to do this, one reads in a greyscale image, where 
+the to be removed areas are colored in pure white. Those areas will not be saved 
+in the final .dat dataset.
 
 Datasets can be combined with combine_tool.py, which concatenates two datasets 
 and puts them next to each other with a gap of 20 in the X direction.  

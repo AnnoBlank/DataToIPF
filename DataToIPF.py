@@ -29,6 +29,8 @@ import ebsd_merge_evaluate.datamerge_threadingQT as merge
 import ebsd_merge_evaluate.cubicipf_qt as cubic_ipf
 import ebsd_merge_evaluate.ipfzXY as ipfzXY
 
+# from logging import *
+
 # Constants
 WORKING_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -405,7 +407,7 @@ def rotation_ebsd(
 
 class connectButton(
     qt5_interface.Ui_MainWindow,
-    QMainWindow,
+    QtWidgets.QMainWindow,
 ):
     def __init__(self):
         super().__init__()
@@ -460,14 +462,23 @@ class connectButton(
         # Create tmp directory if it doesn't exist
         os.makedirs("tmp", exist_ok=True)
 
-        # Initialize timestamp
-        self.initTimestamp()
-        self.mergedata.now = self.now
-        self.mergedata.nowstr = self.nowstr
+        # # Initialize timestamp
+        # self.initTimestamp()
+        # self.mergedata.now = self.now
+        # self.mergedata.nowstr = self.nowstr
 
-        # Initialize logfiles
-        self.createLogFileMerge()
-        self.createLogFileEval()
+        # # Initialize logfiles
+        # self.createLogFileMerge()
+        # self.createLogFileEval()
+
+        # Get logfile paths from submodule
+        self.logfile_merge_path = self.mergedata.logfile_merge_path
+        self.logfile_eval_path = self.mergedata.logfile_eval_path
+
+        # Get logfile function from submodule
+        self.logNewLine = self.mergedata.logNewLine
+        self.logNewSubline = self.mergedata.logNewSubline
+        self.logNewHead = self.mergedata.logNewHead
 
     def addTextprint_logger(
         self,
@@ -642,6 +653,8 @@ class connectButton(
         self.dataMergeProgressBar.setMaximum(0)
 
         self.worker = merge.mergeThread()
+        self.worker.logfile_merge_path = self.logfile_merge_path
+        self.worker.logfile_eval_path = self.logfile_eval_path
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
         self.worker.finished.connect(self.thread.quit)
@@ -1130,16 +1143,19 @@ class connectButton(
         )  # self.mergeLevelingcheckBox.checkState())
 
     def browse_CLSM_substract_norm(self):
+        self.logNewLine(self.logfile_merge_path, "Manual matching selected.\n")
         self.load_clsm_data_thread()
         self.thread.finished.connect(self.load_clsm1_2_data_thread_finished_finished)
 
     def browse_CLSM_substract_auto(self):
+        self.logNewLine(self.logfile_merge_path, "Automatic matching selected.\n")
         self.load_clsm_data_thread()
         self.thread.finished.connect(
             self.load_auto_clsm1_2_data_thread_finished_finished
         )
 
     def browse_CLSM_substract_file(self):
+        self.logNewLine(self.logfile_merge_path, "Matching from file load selected.\n")
         self.load_clsm_data_thread()
         self.thread.finished.connect(
             self.load_auto_clsm_data_thread_finished_from_file_finished
@@ -1163,6 +1179,8 @@ class connectButton(
 
     def load_ebsd_data(self):
         self.workerEBSD = merge.mergeThread()
+        self.workerEBSD.logfile_merge_path = self.logfile_merge_path
+        self.workerEBSD.logfile_eval_path = self.logfile_eval_path
         self.threadEBSD = QThread()
         self.workerEBSD.moveToThread(self.threadEBSD)
         self.workerEBSD.finished.connect(self.threadEBSD.quit)
@@ -1210,6 +1228,8 @@ class connectButton(
         CLSM_render_set,
     ):
         self.workerCLSM2 = merge.mergeThread()
+        self.workerCLSM2.logfile_merge_path = self.logfile_merge_path
+        self.workerCLSM2.logfile_eval_path = self.logfile_eval_path
         self.workerCLSM2.CLSM_render_set = CLSM_render_set
 
         self.threadCLSM2 = QThread()
@@ -1301,16 +1321,18 @@ class connectButton(
         else:
             print("No EBSD data")
 
+
+
     def select_points(self):
         if self.ebsd_loaded:
             if len(self.mergedata.confocal_data) == 2:
-                self.load_clsm_data_thread()
                 self.select_points_status = 1
 
                 print("CLSM data was rendered")
                 self.logNewLine(
                     self.logfile_merge_path, "CLSM data was rendered" + "\n"
                 )
+
 
             elif len(self.mergedata.confocal_data) != 2:
 
@@ -1517,97 +1539,103 @@ class connectButton(
         else:
             self.mergeDeleteCLSMcheckBox.setChecked(True)
 
-    def logNewHead(
-        self,
-        filepath,
-        title,
-    ):
-        if not os.path.isfile(filepath):
-            print("Error: Logfile not initialized!")
-        else:
-            linewidth = 40
-            logfile = open(filepath, "a")
-            logfile.writelines(
-                "-" * (linewidth - int(len(title) / 2))
-                + " "
-                + title
-                + " "
-                + "-" * (linewidth - int(len(title) / 2))
-                + "\n\n"
-            )
-            logfile.close()
+    # def logNewHead(
+    #     self,
+    #     filepath,
+    #     title,
+    # ):
+    #     if not os.path.isfile(filepath):
+    #         print("Error: Logfile not initialized!")
+    #     else:
+    #         linewidth = 40
+    #         logfile = open(filepath, "a")
+    #         logfile.writelines(
+    #             "-" * (linewidth - int(len(title) / 2))
+    #             + " "
+    #             + title
+    #             + " "
+    #             + "-" * (linewidth - int(len(title) / 2))
+    #             + "\n\n"
+    #         )
+    #         logfile.close()
 
-    def logNewLine(
-        self,
-        filepath,
-        text,
-    ):
-        if not os.path.isfile(filepath):
-            print("Error: Logfile not initialized!")
-        else:
-            logfile = open(filepath, "a")
-            logfile.writelines(text + "\n")
-            logfile.close()
+    # def logNewLine(
+    #     self,
+    #     filepath,
+    #     text,
+    # ):
+    #     if not os.path.isfile(filepath):
+    #         print("Error: Logfile not initialized!")
+    #     else:
+    #         logfile = open(filepath, "a")
+    #         logfile.writelines(text + "\n")
+    #         logfile.close()
 
-    def logNewSubline(
-        self,
-        filepath,
-        text,
-    ):
-        self.logNewLine(filepath, " - " + text)
+    # def logNewSubline(
+    #     self,
+    #     filepath,
+    #     text,
+    # ):
+    #     self.logNewLine(filepath, " - " + text)
 
-    def initTimestamp(self):
-        self.now = datetime.now()
-        self.nowstr = (
-            str(self.now.date())
-            + "_"
-            + "{:02}".format(self.now.hour)
-            + "h_"
-            + "{:02}".format(self.now.minute)
-            + "m_"
-            + "{:02}".format(self.now.second)
-            + "s"
-        )
+    # def initTimestamp(self):
+    #     self.now = datetime.now()
+    #     self.nowstr = (
+    #         str(self.now.date())
+    #         + "_"
+    #         + "{:02}".format(self.now.hour)
+    #         + "h_"
+    #         + "{:02}".format(self.now.minute)
+    #         + "m_"
+    #         + "{:02}".format(self.now.second)
+    #         + "s"
+    #     )
 
-    def createLogFileMerge(self):
-        self.logfile_merge_path = os.path.join(
-            "tmp", self.nowstr + "_logfile_merging.log"
-        )
-        self.mergedata.logfile_merge_path = self.logfile_merge_path
-        logfile = open(self.logfile_merge_path, "w")
-        # logfile.writelines('_Header_\n')
-        logfile.writelines(
-            "Logfile created: "
-            + str(self.now.date())
-            + " at "
-            + str(self.now.hour)
-            + ":"
-            + str(self.now.minute)
-            + ":"
-            + str(self.now.second)
-            + "\n\n"
-        )
-        logfile.close()
+    # def createLogFileMerge(self):
+    #     self.logfile_merge_path = os.path.join(
+    #         "tmp", self.nowstr + "_logfile_merging.log"
+    #     )
+    #     self.mergedata.logfile_merge_path = self.logfile_merge_path
+    #     logfile = open(self.logfile_merge_path, "w")
+    #     # logfile.writelines('_Header_\n')
+    #     logfile.writelines(
+    #         "Logfile created: "
+    #         + str(self.now.date())
+    #         + " at "
+    #         + str(self.now.hour)
+    #         + ":"
+    #         + str(self.now.minute)
+    #         + ":"
+    #         + str(self.now.second)
+    #         + "\n\n"
+    #     )
+    #     logfile.close()
+    #
+    # def createLogFileEval(self):
+    #     self.logfile_eval_path = os.path.join(
+    #         "tmp", self.nowstr + "_logfile_evaluation.log"
+    #     )
+    #     self.mergedata.logfile_eval_path = self.logfile_eval_path
+    #     logfile = open(self.logfile_eval_path, "w")
+    #     # logfile.writelines('_Header_\n')
+    #     logfile.writelines(
+    #         "Logfile created: "
+    #         + str(self.now.date())
+    #         + " at "
+    #         + str(self.now.hour)
+    #         + ":"
+    #         + str(self.now.minute)
+    #         + ":"
+    #         + str(self.now.second)
+    #         + "\n\n"
+    #     )
+    #     logfile.close()
 
-    def createLogFileEval(self):
-        self.logfile_eval_path = os.path.join(
-            "tmp", self.nowstr + "_logfile_evaluation.log"
-        )
-        self.mergedata.logfile_eval_path = self.logfile_eval_path
-        logfile = open(self.logfile_eval_path, "w")
-        # logfile.writelines('_Header_\n')
-        logfile.writelines(
-            "Logfile created: "
-            + str(self.now.date())
-            + " at "
-            + str(self.now.hour)
-            + ":"
-            + str(self.now.minute)
-            + ":"
-            + str(self.now.second)
-            + "\n\n"
-        )
-        logfile.close()
+    # def createLogFileMerge(self):
+    #     self.logfile_merge_path = self.mergedata.logfile_merge_path
+    #
+    # def createLogFileEval(self):
+    #     self.logfile_eval_path = self.mergedata.logfile_eval_path
 
     # def createLogMergeSave(self):
     #     self.logfile_merge = open(os.path.join('tmp', 'logfile_merging.log'), 'w')
@@ -2843,6 +2871,8 @@ class connectButton(
 
     # def loadAFMdataThread(self):
     #     self.workerAFM = merge.mergeThread()
+    #     self.workerAFM.logfile_merge_path = self.logfile_merge_path
+    #     self.workerAFM.logfile_eval_path = self.logfile_eval_path
     #     self.threadAFM = QThread()
     #     self.workerAFM.moveToThread(self.threadAFM)
 
@@ -2949,6 +2979,8 @@ class connectButton(
 
     # def loadPicDataThread(self):
     #     self.workerPicData = merge.mergeThread()
+    #     self.workerPicData.logfile_merge_path = self.logfile_merge_path
+    #     self.workerPicData.logfile_eval_path = self.logfile_eval_path
     #     self.threadPicData= QThread()
     #     self.workerPicData.moveToThread(self.threadPicData)
     #     self.workerPicData.finished.connect(self.threadPicData.quit)
